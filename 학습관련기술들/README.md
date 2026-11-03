@@ -10,6 +10,8 @@
   5. 적절한 하이퍼파라미터 값 찾기
 - `appendix.pdf` : 별도 심화 자료 (`appendix.tex`). 실제 딥러닝의 optimizer, SGD의 수렴 조건, L-BFGS와 2차 미분을 쓰는 방법
 - `slides/` : 강의 슬라이드
+  - `slides_training_techniques_code.pdf` : 코드 읽기 슬라이드 (`.tex`, 그림은 `slides/slides_figures/`).
+    모듈(`optimizers.py`, `layers.py`), 최종 코드 `mnist_numpy_final.py`, 실험 코드 6개, `mnist_torch.py`를 한 줄씩 해설
 - `code/` : 노트의 모든 코드. 그림은 `figures/`에 저장된다.
 - `figures/` : 노트에 들어간 그림
 
@@ -22,6 +24,12 @@
 | `optimizers.py` | SGD, Momentum, AdaGrad, RMSProp, Adam, AdamW (`update(params, grads)`) |
 | `layers.py` | Affine, ReLU, Sigmoid, Softmax-loss, BatchNormalization, Dropout, MultiLayerNet |
 | `mnist_data.py` | MNIST 불러오기, 훈련 / 검증 / 시험 분할 |
+
+최종 코드 (세 모듈을 조립)
+
+| 파일 | 내용 |
+|---|---|
+| `mnist_numpy_final.py` | He 초깃값 + 배치 정규화 + AdamW, 검증 정확도가 가장 높은 epoch 저장, 시험 데이터는 마지막에 한 번. `mnist_torch.py`와 같은 설정 |
 
 실험 코드
 
