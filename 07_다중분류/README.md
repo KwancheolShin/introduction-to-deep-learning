@@ -8,7 +8,7 @@ MNIST 손글씨 숫자 분류의 실습 코드와 코드 읽기 슬라이드입�
 |---|---|
 | `mnist_lab.py` | NumPy로 만든 은닉층 1개의 신경망 (계층 클래스, gradient 확인, 미니배치 학습) |
 | `mnist_mlp.py` | 같은 계층으로 은닉층을 여러 개 쌓은 `MultiLayerNet`, 훈련 / 검증 / 시험 분할, 혼동행렬 |
-| `mnist_mlp_simple.py` | 실험 없이 network 하나 (`[784, 100, 10]`)를 `net.fit(...)` 메서드로 학습 (Keras의 `model.fit`처럼 학습 반복을 클래스 안에 둠). `mnist_torch.py`와 대조 |
+| `mnist_mlp_simple.py` | 실험 없이 network 하나 (`[784, 100, 10]`)를 `model.fit(...)` 메서드로 학습 (Keras의 `model.fit`처럼 학습 반복을 클래스 안에 둠). `mnist_torch.py`와 대조 |
 | `mnist_torch.py` | 같은 MNIST 분류를 PyTorch로 |
 | `loop_vs_matmul.py` | 샘플마다 for문으로 계산할 때와 행렬곱 한 번으로 계산할 때의 속도 비교 |
 | `mnist_intro_figures.py` | MNIST 예시 이미지, 이미지를 784차원 행벡터로 펼치는 그림 |

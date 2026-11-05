@@ -1,7 +1,7 @@
 # %% 0. Setup
 # Week: Multi-class Classification -- ONE network, trained with model.fit()
 # The same layers as mnist_mlp.py, but
-#   * MultiLayerNet trains itself: net.fit(...) is a METHOD of the class (like Keras' model.fit)
+#   * MultiLayerNet trains itself: model.fit(...) is a METHOD of the class (like Keras' model.fit)
 #   * no experiments: one network [784 -> 100 -> 10], as in mnist_torch.py
 # Compare with mnist_torch.py, where the training loop is written OUTSIDE the model.
 # Run this file from its own folder; figures are saved to ./figures/*.png
@@ -171,16 +171,16 @@ class MultiLayerNet:
 
 # %% 4. Model
 np.random.seed(1)
-net = MultiLayerNet(784, [100], 10)
-print("layers:", " -> ".join(type(layer).__name__ for layer in net.layers))
-print("number of parameters:", net.num_params())
+model = MultiLayerNet(784, [100], 10)
+print("layers:", " -> ".join(type(layer).__name__ for layer in model.layers))
+print("number of parameters:", model.num_params())
 
 # %% 5. Training (takes a while): ONE line, the loop lives inside the class
 epochs = 10
-hist = net.fit(x_train, t_train, x_val, t_val, epochs=epochs, batch_size=100, learning_rate=0.1)
+hist = model.fit(x_train, t_train, x_val, t_val, epochs=epochs, batch_size=100, learning_rate=0.1)
 
 # %% 6. Test accuracy: ONCE, at the end
-test_acc = net.accuracy(x_test, t_test)
+test_acc = model.accuracy(x_test, t_test)
 print(f"test accuracy: {test_acc:.4f}")
 
 # %% 7. Plots
@@ -198,7 +198,7 @@ fig.savefig("figures/mlp_simple_loss_acc.png", dpi=200, bbox_inches="tight")
 plt.show()
 
 # %% 8. Predictions on the first 10 test images
-probs = softmax(net.predict(x_test[:10]))
+probs = softmax(model.predict(x_test[:10]))
 pred = probs.argmax(axis=1)
 fig, axes = plt.subplots(1, 10, figsize=(10, 2.6))
 for k, a in enumerate(axes):
