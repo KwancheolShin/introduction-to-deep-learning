@@ -9,8 +9,8 @@
   4. 바른 학습을 위해: 오버피팅, 가중치 감소, AdamW, 드롭아웃
   5. 적절한 하이퍼파라미터 값 찾기
 - `appendix.pdf` : 별도 심화 자료 (`appendix.tex`). 실제 딥러닝의 optimizer, SGD의 수렴 조건, L-BFGS와 2차 미분을 쓰는 방법
-- `slides/` : 강의 슬라이드
-  - `slides_training_techniques_code.pdf` : 코드 읽기 슬라이드 (`.tex`, 그림은 `slides/slides_figures/`).
+- 강의 슬라이드
+  - `slides_training_techniques_code.pdf` : 코드 읽기 슬라이드 (`.tex`, 그림은 `slides_figures/`).
     모듈(`optimizers.py`, `layers.py`), 최종 코드 `mnist_numpy_final.py`, 실험 코드 6개, `mnist_torch.py`를 한 줄씩 해설
 - `code/` : 노트의 모든 코드. 그림은 `figures/`에 저장된다.
 - `figures/` : 노트에 들어간 그림

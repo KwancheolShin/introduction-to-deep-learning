@@ -1,19 +1,20 @@
 # Introduction to Deep Learning (딥러닝개론및연습, 2026-2)
 
-Lecture notes, slides and code, in the order of the weekly lectures. Folders with a `연습문제_정답` subfolder also have answer keys for the exercises at the end of the notes.
+Lecture notes, slides and code, one folder per lecture, numbered in the order of the weekly lectures.
 Notebooks (`.ipynb`) open in Colab from the "Open in Colab" link in their first cell.
+Folders with a `연습문제_정답` subfolder also have answer keys for the exercises at the end of the notes.
 
-| Week | Topic | Material |
-|---|---|---|
-| 1–2 | Python basics | slides [01_파이썬기초](01_파이썬기초); notebooks [파이썬_기초_1.ipynb](파이썬_기초_1.ipynb), [파이썬기초2.ipynb](파이썬기초2.ipynb), [파이썬기초3.ipynb](파이썬기초3.ipynb); review notebooks [파이썬기초4.ipynb](파이썬기초4.ipynb) (objects and references, copies, files, saving, argparse) and [파이썬기초5.ipynb](파이썬기초5.ipynb) (numpy for deep-learning code) |
-| 2 | Linear regression | [02_선형회귀](02_선형회귀) |
-| 3 | Multivariable functions, partial derivatives, gradient descent, Newton's method | [03_GD_Newton](03_GD_Newton); notebooks [newtons_method_1d.ipynb](newtons_method_1d.ipynb), [gradient_descent_2variables.ipynb](gradient_descent_2variables.ipynb), [linear_regression_numerical_gradient_descent.ipynb](linear_regression_numerical_gradient_descent.ipynb) |
-| 4 | Chain rule and gradient backpropagation | [04_ChainRule](04_ChainRule) |
-| 5 | Neurons and perceptrons, one-variable two-layer classification | [05_뉴런과 퍼셉트론, 1변수 2층 분류](05_뉴런과%20퍼셉트론,%201변수%202층%20분류); notebooks [1_layer_classiication_ipynb의_사본.ipynb](1_layer_classiication_ipynb의_사본.ipynb), [2layers_2node_classification_ipynb의_사본.ipynb](2layers_2node_classification_ipynb의_사본.ipynb) |
-| 6 | Neuron, activation, and hidden layer | [06_Neuron, Activation, and Hidden Layer](06_Neuron,%20Activation,%20and%20Hidden%20Layer) |
-| 6, 10 | Multi-class classification (MNIST): NumPy and PyTorch | [multiclass_mnist](multiclass_mnist) |
-| 7 | Techniques for training | [학습관련기술들](학습관련기술들) |
-| 8 | Midterm exam (with the practice exam) | [09_중간고사](09_중간고사) |
-| 9 | Convolutional neural networks | [CNN](CNN) |
+| Folder | Week | Topic | What is inside |
+|---|---|---|---|
+| [01_파이썬기초](01_파이썬기초) | 1–2 | Python basics | slides (pptx); notebooks 1–3 from the lectures, review notebooks 4 (objects and references, copies, files, saving, argparse) and 5 (numpy for deep-learning code) |
+| [02_선형회귀](02_선형회귀) | 2 | Linear regression | reading material |
+| [03_GD_Newton](03_GD_Newton) | 3 | Multivariable functions, partial derivatives, gradient descent, Newton's method | notes; `code/`: Newton's method, gradient descent in two variables, linear regression with numerical gradients (`.py` and Colab notebooks) |
+| [04_ChainRule](04_ChainRule) | 4 | Chain rule and gradient backpropagation | notes |
+| [05_뉴런과 퍼셉트론, 1변수 2층 분류](05_뉴런과%20퍼셉트론,%201변수%202층%20분류) | 5 | Neurons and perceptrons, one-variable two-layer classification | notes, slides (pptx); `code/`: one-layer and two-layer classification |
+| [06_Neuron, Activation, and Hidden Layer](06_Neuron,%20Activation,%20and%20Hidden%20Layer) | 6 | Neuron, activation, and hidden layer | notes, hidden-layer lab |
+| [07_다중분류](07_다중분류) | 6, 10 | Multi-class classification (MNIST), NumPy and PyTorch | notes, code-reading slides, scripts and Colab notebooks, answer keys |
+| [08_학습관련기술](08_학습관련기술) | 7 | Techniques for training | notes, code-reading slides, `code/` (scripts and Colab notebooks), answer keys |
+| [09_중간고사](09_중간고사) | 8 | Midterm exam | exam, solution, practice exam |
+| [10_CNN](10_CNN) | 9 | Convolutional neural networks | notes, slides, code-reading slides, `code/`, answer keys |
 
-The folders `multiclass_mnist`, `학습관련기술들`, `CNN` and the notebooks in this top folder keep their original paths, because Colab links and the course LMS point to them.
+`figures/` holds figures that the notes in `03_GD_Newton` include.
