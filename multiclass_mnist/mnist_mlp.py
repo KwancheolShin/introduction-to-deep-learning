@@ -1,9 +1,12 @@
+# %% 0. Setup
 # Week: Multi-class Classification -- extended lab (for Assignment 2)
 # Deeper networks built from the SAME layer classes as mnist_lab.py.
 #   * MultiLayerNet: any number of hidden layers, given as a list of widths
 #   * train / validation split
 #   * compare several settings on the validation set, then test ONCE at the end
 # Run this file from its own folder; figures are saved to ./figures/*.png
+#   Cells: each '# %%' starts a cell. In VS Code, Run Cell (Shift+Enter) sends one cell to the
+#   Interactive window (variables stay in the kernel); 'python <file>' still runs the whole file.
 
 import os
 import time
@@ -13,6 +16,7 @@ import matplotlib.pyplot as plt
 np.random.seed(0)
 os.makedirs("figures", exist_ok=True)
 
+# %% 1. Data
 # =====================================================
 # 1. Data: load, flatten, normalize, one-hot, train/validation split
 # =====================================================
@@ -43,6 +47,7 @@ x_train, t_train = x_all[train_idx], t_all[train_idx]       # (55000, 784)
 x_val,   t_val   = x_all[val_idx],   t_all[val_idx]         # (5000, 784)
 print("train:", x_train.shape, " validation:", x_val.shape, " test:", x_test.shape)
 
+# %% 2. Layers
 # =====================================================
 # 2. Layers (identical to mnist_lab.py)
 # =====================================================
@@ -127,6 +132,7 @@ class SoftmaxWithSquaredError:
         R = self.Y - self.T
         return self.Y * (R - np.sum(self.Y * R, axis=1, keepdims=True)) / h
 
+# %% 3. Multi-layer network
 # =====================================================
 # 3. Multi-layer network: X -> [Affine -> act] x k -> Affine -> Softmax-loss
 # =====================================================
@@ -173,6 +179,7 @@ class MultiLayerNet:
     def num_params(self):
         return sum(p.size for p in self.params.values())
 
+# %% 4. Training function
 # =====================================================
 # 4. Training with mini-batches (one epoch = every training image once)
 # =====================================================
@@ -197,6 +204,7 @@ def train(network, epochs=20, batch_size=100, learning_rate=0.1, name=""):
               f"({time.time() - t0:.0f}s)")
     return hist
 
+# %% 5. Experiments (takes a while)
 # =====================================================
 # 5. Experiments: change ONE thing at a time, compare on the validation set
 # =====================================================
@@ -217,6 +225,7 @@ for name, hidden, act, loss_type, lr, bs in experiments:
     hist = train(net, epochs=epochs, batch_size=bs, learning_rate=lr, name=name.split(":")[0])
     results[name] = (net, hist)
 
+# %% 5'. Summary and learning curves
 print("\n===== summary (validation accuracy after the last epoch) =====")
 for name, (net, hist) in results.items():
     print(f"{name:30s}  params={net.num_params():7d}  "
@@ -244,6 +253,7 @@ plt.tight_layout()
 plt.savefig("figures/mlp_compare.png", dpi=200, bbox_inches="tight")
 plt.show()
 
+# %% 6. Final evaluation: test ONCE
 # =====================================================
 # 6. Final evaluation: pick the best on VALIDATION, then test ONCE
 # =====================================================
@@ -253,6 +263,7 @@ test_acc = best_net.accuracy(x_test, t_test)
 print(f"\nbest on validation: {best_name}")
 print(f"test accuracy of the chosen network: {test_acc:.4f}")
 
+# %% 6'. Confusion matrix
 # confusion matrix: row = true class, column = predicted class
 pred = np.argmax(best_net.predict(x_test), axis=1)
 C = np.zeros((10, 10), dtype=int)

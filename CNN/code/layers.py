@@ -142,6 +142,7 @@ class Dropout:
     def forward(self, X, train_flg=True):
         if train_flg:
             keep = 1.0 - self.dropout_ratio
+            # *X.shape unpacks the shape tuple: rand(*(100, 50)) is rand(100, 50)
             self.mask = (np.random.rand(*X.shape) < keep) / keep   # 0 or 1/keep
             return X * self.mask
         return X

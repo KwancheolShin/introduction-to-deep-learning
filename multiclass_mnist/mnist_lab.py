@@ -211,9 +211,9 @@ for loss_type in ["ce", "se"]:
 # =====================================================
 network = TwoLayerNet(input_size=784, hidden_size=100, output_size=10)
 
-epochs        = 10
+epochs        = 1000
 batch_size    = 100
-learning_rate = 0.1
+learning_rate = 0.01
 
 N = x_train.shape[0]
 iter_per_epoch = N // batch_size          # 600 iterations = 1 epoch

@@ -23,12 +23,12 @@ os.makedirs(FIG_DIR, exist_ok=True)
 def numerical_gradient(f, P, eps=1e-5):
     grad = np.zeros_like(P)
     for idx in np.ndindex(P.shape):
-        old = P[idx]
-        P[idx] = old + eps
-        f_plus = f()
-        P[idx] = old - eps
+        old     = P[idx]
+        P[idx]  = old + eps
+        f_plus  = f()
+        P[idx]  = old - eps
         f_minus = f()
-        P[idx] = old
+        P[idx]  = old
         grad[idx] = (f_plus - f_minus) / (2 * eps)
     return grad
 

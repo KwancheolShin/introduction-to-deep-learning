@@ -1,0 +1,472 @@
+% !TeX program = xelatex
+\documentclass[11pt,a4paper]{article}
+
+% -------------------------------------------------
+% Packages
+% -------------------------------------------------
+\usepackage{kotex}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[left=24mm,right=24mm,top=23mm,bottom=25mm]{geometry}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usepackage{pifont}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,decorations.pathreplacing}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\setstretch{1.14}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+% -------------------------------------------------
+% Colors and boxes
+% -------------------------------------------------
+\definecolor{deepblue}{RGB}{34,71,120}
+\definecolor{softblue}{RGB}{239,246,253}
+\definecolor{softgray}{RGB}{246,247,249}
+\definecolor{softgreen}{RGB}{239,249,242}
+\definecolor{softyellow}{RGB}{255,249,229}
+\definecolor{codegray}{RGB}{248,248,248}
+
+\newtcolorbox{keybox}[1][]{
+  colback=softblue,
+  colframe=deepblue,
+  boxrule=0.7pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{thinkbox}[1][]{
+  colback=softyellow,
+  colframe=orange!70!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{remarkbox}[1][]{
+  colback=softgray,
+  colframe=black!45,
+  boxrule=0.5pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{mlbox}[1][]{
+  colback=softgreen,
+  colframe=green!45!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+% -------------------------------------------------
+% Code style
+% -------------------------------------------------
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  stringstyle=\color{black!75},
+  numbers=left,
+  numberstyle=\tiny\color{black!55},
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true
+}
+\lstset{style=pythonstyle}
+
+% -------------------------------------------------
+% Math commands
+% -------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\grad}{\nabla}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\sigmoid}{\sigma}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\softmax}{\operatorname{softmax}}
+
+% -------------------------------------------------
+% Header / footer
+% -------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Introduction to Deep Learning and Practice}
+\rhead{Midterm Review}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=deepblue,
+  urlcolor=deepblue
+}
+
+% =================================================
+
+% source tag of a problem
+\newcommand{\src}[1]{{\unskip\nobreak\hfil\penalty50\hskip1em\hbox{}\nobreak\hfill\mbox{\small\color{black!50}[#1]}}}
+% a problem block
+\newlist{problems}{enumerate}{1}
+\setlist[problems]{label=\textbf{\thesection.\arabic*},ref=\thesection.\arabic*,leftmargin=2.9em,itemsep=0.9em}
+% =================================================
+\begin{document}
+% =================================================
+
+\begin{center}
+{\LARGE\bfseries 중간고사 연습문제}\\[0.35em]
+{\large 딥러닝개론및연습 $\cdot$ 2026년 2학기}\\[0.8em]
+\end{center}
+
+% =================================================
+\section{Chain Rule, Gradient, Jacobian과 계산 그래프}\label{sec:chain}
+% =================================================
+
+\begin{problems}
+
+\item 다음 vector-valued function의 Jacobian을 구하라. \src{ChainRule 연습 3}
+\[
+F(x_1,x_2)=\begin{bmatrix}x_1^2+x_2\\ \sin(x_1x_2)\end{bmatrix}.
+\]
+
+\item $q=x+y$, $p=xy$, $f=qp$로 정의된 계산 그래프를 생각하자. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item 계산 그래프를 그리고, $(x,y)=(1,2)$에서 순전파로 $q$, $p$, $f$를 구하라.
+\item 각 연결의 local derivative를 쓰고, 역전파로 $\pd{f}{x}$, $\pd{f}{y}$를 구하라.
+$x$에서 화살표가 두 개 나가는 것에 주의하라.
+\item $f(x,y)=(x+y)xy$를 직접 미분하여 (b)의 결과를 확인하라.
+\end{enumerate}
+
+\item $G(x_1,x_2)=(x_1x_2,\ x_1+x_2)$, $F(u,v)=(u^2,\ uv)$라 하자. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $(x_1,x_2)=(1,2)$에서 $G$의 Jacobian $J_G$와 $(u,v)=G(1,2)$에서 $F$의 Jacobian $J_F$를 구하라.
+\item Jacobian 형태의 chain rule $J_{F\circ G}=J_F\,J_G$로 합성함수의 Jacobian을 구하라.
+\item $F\circ G$를 $x_1$, $x_2$의 식으로 직접 쓰고 미분하여 (b)의 결과를 확인하라.
+\end{enumerate}
+\end{problems}
+
+% =================================================
+\section{Gradient Descent, Newton's Method, Gauss--Newton}\label{sec:newton}
+% =================================================
+
+\subsection*{1변수}
+
+\begin{problems}
+
+\item $f(x)=\frac12x^2+\frac13x^3+\frac14x^4$에 대하여 $x_0=1$에서 시작한다. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item 유일한 stationary point가 $x^*=0$이고 그 점이 최솟점임을 보이라.
+\item Gradient Descent ($\alpha=0.2$)로 $x_1$, $x_2$를 구하라.
+\item Newton's method로 $x_1$, $x_2$를 구하라.
+\item Newton's method가 현재점에서의 \textbf{이차 근사함수}의 최솟점을 다음 점으로 고른다는 것을
+$q_k(x)=f(x_k)+f'(x_k)(x-x_k)+\frac12f''(x_k)(x-x_k)^2$를 이용하여 보이라.
+\end{enumerate}
+
+\item (참고만, 시험에는 안남) 수렴 차수에 관한 문제이다. $e_k=x_k-x^*$라 하자.
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item Gradient Descent에서 평균값 정리를 이용하여 $e_{k+1}=\bigl[1-\alpha f''(\xi_k)\bigr]e_k$임을 보이라.
+이로부터 국소적으로 linear convergence가 일어나는 조건 $|1-\alpha f''(x^*)|<1$을 설명하라.
+\item Newton's method에서 Taylor 정리를 이용하여 $e_{k+1}=\dfrac{f'''(\xi_k)}{2f''(x_k)}e_k^2$임을 보이라.
+\item (a)와 (b)의 결과를 비교하여 Newton's method가 더 빨리 수렴하는 이유를 한 문장으로 설명하라.
+\item $f(x)=x^2-4x+5$에 Newton's method를 쓰면 어떤 $x_0$에서 시작하든 한 번에 최솟점에 도달한다. 이유를 설명하라.
+\end{enumerate}
+
+\end{problems}
+
+\subsection*{다변수}
+
+\begin{problems}[resume]
+
+\item $f(x_1,x_2)=3(x_1-6)^2+(x_2-5)^2$에 대하여 다음 물음에 답하여라. \src{위 문제의 (a)와 관련됨}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item gradient $\nabla f$와 Hessian $H$를 구하라.
+\item $\bm x_0=(1,1)$, $\alpha=0.05$로 Gradient Descent를 두 번 적용하여 $\bm x_1$, $\bm x_2$를 구하라.
+\item Gradient Descent가 수렴하는 $\alpha$의 범위를 구하라. 어느 방향이 학습률의 상한을 결정하는가?
+\item Newton's method를 한 번 적용하여 $\bm x_1$을 구하고, 왜 한 번에 최솟점에 도달하는지 설명하라.
+\end{enumerate}
+
+
+
+\item $f(x,y)=x^4+xy+y^2$에 대하여 $(x_0,y_0)=(1,0)$에서 Newton step을 계산하라.
+즉 $\bm g_0=\nabla f(1,0)$, $H_0=H(1,0)$를 구하고 연립방정식 $H_0\bm p_0=-\bm g_0$를 풀어 $(x_1,y_1)$을 구하라.
+\src{추가}
+
+\end{problems}
+
+
+% =================================================
+\section{Neuron, 활성화 함수, 은닉층}\label{sec:neuron}
+% =================================================
+
+이 절에서 $\sigmoid$는 sigmoid 함수
+\[
+\sigmoid(a)=\frac{1}{1+e^{-a}}
+\]
+이다.
+
+\begin{problems}
+
+
+\item 하나의 neuron $a=w_1x_1+w_2x_2+b$, $z=\sigmoid(a)$에 대해 $\nabla_{\vect{w}}z$를 구하라. \src{Neuron 연습 2}
+
+
+\item $\ell=(z-t)^2$, $z=\sigmoid(wx+b)$에 대해 computational graph를 그리고
+$\pd{\ell}{w}$, $\pd{\ell}{b}$를 local derivative의 곱으로 유도하라. \src{Neuron 연습 4}
+
+\item 활성화 함수가 identity, $\phi(a)=a$라고 하자. 두 affine layer
+$\vect{h}=W_1\vect{x}+\vect{b}_1$, $\vect{y}=W_2\vect{h}+\vect{b}_2$를
+하나의 affine layer로 합칠 수 있음을 보이라. 이로부터 비선형 활성화 함수가 필요한 이유를 설명하라. \src{Neuron 연습 5}
+
+
+
+\item 활성화 함수의 미분에 관한 문제이다. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $\sigmoid(a)=\dfrac{1}{1+e^{-a}}$에 대하여 $\sigmoid'(a)=\sigmoid(a)\bigl(1-\sigmoid(a)\bigr)$임을 보이고,
+$\sigmoid'(a)$의 최댓값과 그때의 $a$를 구하라.
+\item $\tanh(a)=2\sigmoid(2a)-1$임을 보이고, $\tanh'(a)=1-\tanh^2(a)$를 유도하라.
+\item ReLU $h(a)=\max(0,a)$의 도함수를 쓰라. 역전파에서 ReLU 계층은 gradient를 어떻게 전달하는가?
+\item (a)의 결과를 이용하여, sigmoid를 쓰는 층을 여러 개 쌓으면 역전파에서 gradient가 작아지는 이유를 설명하라.
+\end{enumerate}
+
+
+\item \src{Neuron 과제 1}
+
+다음 데이터 $(x_i,t_i)$가 주어졌다고 하자.
+\begin{center}
+\begin{tabular}{c|cccccccc}
+\toprule
+$i$ & 0 & 1 & 2 & 3 & 4 & 5 & 6 & 7 \\
+\midrule
+$x$ & $-2$ & $-1$ & $0$ & $1$ & $2$ & $3$ & $4$ & $5$ \\
+$t$ & $0$ & $0$ & $1$ & $1$ & $1$ & $1$ & $0$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+은닉층이 1층이고 두 개의 노드를 갖는 함수로 주어진 데이터를 회귀하고자 한다.
+활성화 함수가 ReLU $h(x)=\max(0,x)$일 때 ($h'(0)=0$으로 약속한다)
+\[
+\begin{cases}a_1=xw^{(1)}_1+b^{(1)}_1\\ a_2=xw^{(1)}_2+b^{(1)}_2\end{cases},\qquad
+\begin{cases}z_1=h(a_1)\\ z_2=h(a_2)\end{cases},\qquad
+y=z_1w^{(2)}_1+z_2w^{(2)}_2+b^{(2)}
+\]
+이고, 행렬로 $W^{(1)}=(w^{(1)}_1,w^{(1)}_2)$, $B^{(1)}=(b^{(1)}_1,b^{(1)}_2)$,
+$W^{(2)}=\begin{pmatrix}w^{(2)}_1\\ w^{(2)}_2\end{pmatrix}$, $B^{(2)}=(b^{(2)})$, $A=(a_1,a_2)$, $Z=(z_1,z_2)$라 하면
+\[
+A=(x)W^{(1)}+B^{(1)},\qquad Z=h(A),\qquad y=ZW^{(2)}+B^{(2)}
+\]
+이다. 오차를 $e=y-t$, 제곱 오차를 $l=e^2$이라 하자.
+데이터 $(x_3,t_3)=(1,1)$과 초깃값
+\[
+W^{(1)}_0=(1,0),\quad B^{(1)}_0=(0,1),\quad W^{(2)}_0=\begin{pmatrix}3\\2\end{pmatrix},\quad B^{(2)}_0=0
+\]
+에 대하여 다음 물음에 답하여라.
+
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item 순전파로 정해지는 변수값 $A$, $Z$, $y$, $e$, $l$의 값을 구하여라.
+\item 역전파로 정해지는 편미분
+$\pd{l}{e},\ \pd{l}{y},\ \pd{l}{W^{(2)}_0},\ \pd{l}{B^{(2)}_0},\ \pd{l}{Z},\ \pd{l}{A},\ \pd{l}{W^{(1)}_0},\ \pd{l}{B^{(1)}_0},\ \pd{l}{x}$
+의 값을 구하여라.
+\item $\alpha=0.01$일 때 경사하강법을 적용하여 $W^{(1)}_1$, $B^{(1)}_1$, $W^{(2)}_1$, $B^{(2)}_1$을 구하여라.
+
+\end{enumerate}
+
+\end{problems}
+
+% =================================================
+\section{다중분류: Affine 계층, Softmax, Cross Entropy, 미니배치}\label{sec:multi}
+% =================================================
+
+\begin{problems}
+
+\item MNIST network에서 입력 $l=784$, 은닉 $m=100$, 출력 $n=10$, 미니배치 크기 $h=100$이다.
+$X$, $W^{(1)}$, $B^{(1)}$, $A$, $Z$, $W^{(2)}$, $B^{(2)}$, $U$, $Y$, $T$의 shape을 쓰고,
+학습해야 하는 parameter의 총 개수를 구하라. \src{다중분류 연습 1}
+
+\item $U=(1,2,3)$일 때 $Y=\softmax(U)$를 구하라.
+
+\item 정답이 $t=(0,0,1)$이고 network의 출력이 $Y=(0.2,\,0.3,\,0.5)$일 때 cross entropy 손실 $l$과 $\pd{l}{U}$를 구하라.
+경사하강법은 세 점수 $u_1,u_2,u_3$를 각각 어느 방향으로 움직이는가? \src{다중분류 연습 3}
+
+\item (두 확률분포의 비교) 같은 표본공간 $\{1,2,3\}$ 위의 기준 분포 $p$와, $p$를 근사하는 두 분포 $q_A$, $q_B$가 있다.
+\[
+p=(0.7,\ 0.2,\ 0.1),
+\qquad
+q_A=(0.6,\ 0.3,\ 0.1),
+\qquad
+q_B=(0.7,\ 0.1,\ 0.2)
+\]
+entropy, cross entropy, KL divergence는 각각
+\[
+H(p)=-\sum_ip_i\log p_i,
+\qquad
+H(p,q)=-\sum_ip_i\log q_i,
+\qquad
+D_{\mathrm{KL}}(p\,\|\,q)=\sum_ip_i\log\frac{p_i}{q_i}
+\]
+이다 ($\log$는 자연로그이며
+$\log0.7\approx-0.357$, $\log0.6\approx-0.511$, $\log0.3\approx-1.204$, $\log0.2\approx-1.609$, $\log0.1\approx-2.303$을 이용하라). \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $p$와 $q_A$, $p$와 $q_B$의 확률질량함수를 각각 겹쳐 막대그래프로 그려라.
+성분별 차이의 제곱합 $\sum_i(p_i-q_i)^2$을 $q_A$, $q_B$에 대해 각각 구하라.
+\item $H(p)$를 구하라.
+\item $H(p,q_A)$, $H(p,q_B)$와 $D_{\mathrm{KL}}(p\,\|\,q_A)$, $D_{\mathrm{KL}}(p\,\|\,q_B)$를 구하라.
+cross entropy로 보면 어느 분포가 $p$에 더 가까운가?
+\item (a)의 제곱합은 같은데 (c)의 값은 왜 다른가?
+$q_B$가 결과 $2$에 준 확률과 그때의 놀라움 $-\log q_2$를 이용하여 설명하라.
+\item $H(p,q)=H(p)+D_{\mathrm{KL}}(p\,\|\,q)$임을 보이라.
+$p$가 고정되어 있을 때 $H(p,q)$를 최소화하는 것이 $D_{\mathrm{KL}}(p\,\|\,q)$를 최소화하는 것과 같은 이유와,
+$H(p,q)$가 가장 작아지는 $q$를 설명하라.
+\item 기준 분포가 one-hot 정답 $t=(1,0,0)$이라면 $H(t,q_A)$, $H(t,q_B)$는 각각 얼마인가?
+(c)와 비교하여 어느 분포가 더 좋은지가 바뀌는 이유를 설명하라.
+\end{enumerate}
+
+\item Affine 계층 $A=XW+B$에서
+\[
+X=(1,\ 2),\qquad
+W=\begin{pmatrix}1&0&-1\\2&1&0\end{pmatrix},\qquad
+B=(0,\ 1,\ 0),\qquad
+\pd{l}{A}=(1,\ -1,\ 2)
+\]
+일 때 $A$, $\pd{l}{X}$, $\pd{l}{W}$, $\pd{l}{B}$를 구하라. \src{다중분류 연습 4}
+
+
+
+
+
+\item softmax와 cross entropy를 함께 쓰는 출력층에 대하여 다음을 보이라. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item 데이터 하나에 대하여 $l=-\sum_kt_k\log y_k$, $Y=\softmax(U)$이면 $\pd{l}{U}=Y-T$이다.
+\item 미니배치 $h$개의 평균 손실 $L=\frac1h\sum_{i}l_i$에 대해서는 $\pd{L}{U}=\frac1h(Y-T)$이다.
+\item one-hot 정답에서 cross entropy는 $-\log(\text{정답 class의 확률})$이 됨을 보이고,
+정답 class의 확률이 $1$, $0.5$, $0.01$일 때의 손실을 비교하라.
+\end{enumerate}
+
+
+
+\item 훈련 데이터 $55000$개를 미니배치 크기 $100$으로 학습한다. 한 epoch은 몇 iteration인가?
+$10$ epoch 동안 parameter는 몇 번 갱신되는가? 온라인 학습, full-batch 학습, 미니배치 학습의 차이를 설명하라. \src{추가}
+
+\item \src{다중분류 과제 1}
+
+XOR 문제를 은닉층이 1개이고 출력층에 softmax를 사용하는 신경망으로 학습시키는 과정을 연습해 보자.
+입력 $X=(x_1,x_2)$, 정답 레이블의 원핫 인코딩 $t=(t_1,t_2)$이고, XOR 데이터는
+$(0,0)\to(1,0)$, $(1,0)\to(0,1)$, $(0,1)\to(0,1)$, $(1,1)\to(1,0)$이다.
+$A=(a_1,a_2)$, $Z=(z_1,z_2)$, $U=(u_1,u_2)$, $Y=(y_1,y_2)$라 하고, 가중치와 편이를
+\[
+W^{(1)}=\begin{pmatrix}w^{(1)}_{11}&w^{(1)}_{12}\\ w^{(1)}_{21}&w^{(1)}_{22}\end{pmatrix},\quad
+B^{(1)}=\bigl(b^{(1)}_1,b^{(1)}_2\bigr),\quad
+W^{(2)}=\begin{pmatrix}w^{(2)}_{11}&w^{(2)}_{12}\\ w^{(2)}_{21}&w^{(2)}_{22}\end{pmatrix},\quad
+B^{(2)}=\bigl(b^{(2)}_1,b^{(2)}_2\bigr)
+\]
+라 하자. 신경망의 순전파는
+\[
+A=XW^{(1)}+B^{(1)},\quad Z=h(A),\quad U=ZW^{(2)}+B^{(2)},\quad Y=\softmax(U),
+\]
+\[
+l=-\sum_{i=1}^{2}t_i\log y_i
+\]
+이다. 초기 가중치와 편이가
+\[
+W^{(1)}_0=\begin{pmatrix}2&-1\\-2&2\end{pmatrix},\quad
+B^{(1)}_0=(1,0),\quad
+W^{(2)}_0=\begin{pmatrix}-1&1\\-2&2\end{pmatrix},\quad
+B^{(2)}_0=(1,-1)
+\]
+일 때,
+
+데이터 $X_4=(1,1)$, $t_4=(1,0)$에 대한 온라인 학습을 진행하여 가중치를 업데이트하여라.
+$h$는 ReLU ($x\ge0$이면 $x$, $x<0$이면 $0$)이고 학습률은 $1$이다.
+순전파 값 $A$, $Z$, $U$, $Y$, $l$과 역전파 값 $\pd{l}{U}$, $\pd{l}{W^{(2)}}$, $\pd{l}{B^{(2)}}$, $\pd{l}{Z}$, $\pd{l}{A}$,
+$\pd{l}{W^{(1)}}$, $\pd{l}{B^{(1)}}$을 차례로 구하라. \src{다중분류 과제 1}
+
+\end{problems}
+
+% =================================================
+\section{학습 관련 기술}\label{sec:train}
+% =================================================
+
+\subsection*{매개변수 갱신 (optimizer)}
+
+이 절의 문제에서 $\bm g_k=\pd{L}{W}$는 $k$번째 단계의 gradient이고, $g_{k,i}$는 그 $i$번째 성분이다.
+예제 함수는 $f(x,y)=\frac{1}{20}x^2+y^2$, 시작점은 $(x_0,y_0)=(-7,2)$이다.
+
+\begin{problems}
+
+\item $f(x,y)=\frac{1}{20}x^2+y^2$에서 SGD가 발산하지 않는 학습률 $\alpha$의 범위를 구하라.
+또 이 범위 안에서 $x$ 방향의 수렴이 가장 빠른 $\alpha$와 그때 $x$가 한 단계에 몇 배가 되는지 구하라. \src{학습기술 연습 1}
+
+\item 모멘텀 $\bm v_{k+1}=\beta\bm v_k-\alpha\bm g_k$, $W_{k+1}=W_k+\bm v_{k+1}$에서
+gradient가 매 단계 같은 값 $\bm g$로 일정하다고 하자.
+$\bm v_0=\bm 0$일 때 $\bm v_k$를 구하고, $k\to\infty$일 때 $\bm v_k\to-\dfrac{\alpha}{1-\beta}\,\bm g$임을 보이라. \src{학습기술 연습 2}
+
+\item 예제 함수에서 모멘텀 ($\alpha=0.1$, $\beta=0.9$)으로 $\bm v_1$, $(x_1,y_1)$, $\bm v_2$, $(x_2,y_2)$를 손으로 계산하라.
+$x$ 방향과 $y$ 방향의 속도가 어떻게 변하는지 설명하라. \src{추가}
+
+\item 시작점 $(-7,2)$에서 AdaGrad ($\alpha=1.5$)로 두 번째 단계 $(x_2,y_2)$를 손으로 계산하라 ($\varepsilon$은 무시한다).
+결과를 $(-4.573,\ 0.136)$과 비교하라. \src{학습기술 연습 3}
+
+
+
+\end{problems}
+
+\subsection*{가중치의 초깃값}
+
+\begin{problems}[resume]
+
+\item (참고만..) $a=\sum_{i=1}^{n}z_iw_i$에서 $z_i=\max(0,a_i')$이고 $a_i'$이 평균 $0$인 대칭 분포를 따를 때
+$\mathbb E[z_i^2]=\frac12\mathrm{Var}(a_i')$임을 보이고, 이로부터 He 초깃값 $\mathrm{Var}(w)=\frac2n$을 유도하라.
+($w_i$는 평균 $0$이고 $z_i$와 독립이다.) 왜 $\mathrm{Var}(z_i)$가 아니라 $\mathbb E[z_i^2]$이 필요한가? \src{학습기술 연습 7}
+
+\item 입력 node 수가 $n=784$, $100$인 층에서 Xavier 초깃값과 He 초깃값의 표준편차를 각각 구하라.
+sigmoid와 ReLU에는 각각 어느 초깃값을 쓰는가? \src{추가}
+
+\item (참고만..) 은닉층이 5개 (각 $100$개 node, ReLU)인 network의 가중치를 표준편차 $0.01$로 초기화하였다. \src{추가}
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item 순전파에서 한 층을 지날 때마다 활성화값의 크기가 대략 몇 배가 되는지 $\sqrt{n\,\mathrm{Var}(w)/2}$로 추정하라.
+\item Affine 계층의 역전파 $\pd{L}{X}=\pd{L}{A}W\T$, $\pd{L}{W}=X\T\pd{L}{A}$를 이용하여,
+출력에 가까운 층과 입력에 가까운 층의 가중치 gradient가 각각 어떤 이유로 작아지는지 설명하라.
+\item sigmoid에서 가중치가 너무 클 때 일어나는 기울기 소실은 (b)와 원인이 어떻게 다른가?
+\end{enumerate}
+
+\end{problems}
+
+\subsection*{배치 정규화}
+
+배치 정규화는 미니배치 ($h$개)에서 node마다
+\[
+\mu_B=\frac1h\sum_{i=1}^{h}x_i,\qquad
+\sigma_B^2=\frac1h\sum_{i=1}^{h}(x_i-\mu_B)^2,\qquad
+\hat x_i=\frac{x_i-\mu_B}{\sqrt{\sigma_B^2+\varepsilon}},\qquad
+y_i=\gamma\hat x_i+\beta
+\]
+를 계산한다.
+
+\begin{problems}[resume]
+
+\item 어떤 node의 미니배치 값이 $(1,\ 2,\ 3,\ 6)$이고 $\gamma=2$, $\beta=1$이다 ($\varepsilon$은 무시한다).
+$\mu_B$, $\sigma_B^2$, $\hat x_i$, $y_i$를 구하라. $\hat x_i$의 평균과 분산은 얼마인가? \src{추가}
+
+\end{problems}
+
+\end{document}

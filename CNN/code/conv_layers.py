@@ -107,18 +107,20 @@ class Flatten:
 class SimpleConvNet:
     """Conv -> ReLU -> Pool -> Flatten -> Affine -> ReLU -> Affine -> Softmax"""
     def __init__(self, input_shape=(1, 28, 28), filter_num=30, filter_size=5,
-                 hidden_size=100, output_size=10):
+                 hidden_size=100, output_size=10, weight_init_std="he"):
         C, H, W = input_shape
         conv_out = H - filter_size + 1                     # 28 - 5 + 1 = 24
         pool_out = conv_out // 2                           # 2x2 max pooling: 12
         flat = filter_num * pool_out * pool_out            # 30 * 12 * 12 = 4320
         n_in = C * filter_size * filter_size               # 25 inputs per filter
-        self.params = {                                    # He initialization
-            "W1": np.sqrt(2.0 / n_in) * np.random.randn(filter_num, C, filter_size, filter_size),
+        def std(n):                                        # "he": sqrt(2 / n_in), or a fixed number such as 0.01
+            return np.sqrt(2.0 / n) if weight_init_std == "he" else weight_init_std
+        self.params = {
+            "W1": std(n_in) * np.random.randn(filter_num, C, filter_size, filter_size),
             "B1": np.zeros(filter_num),
-            "W2": np.sqrt(2.0 / flat) * np.random.randn(flat, hidden_size),
+            "W2": std(flat) * np.random.randn(flat, hidden_size),
             "B2": np.zeros((1, hidden_size)),
-            "W3": np.sqrt(2.0 / hidden_size) * np.random.randn(hidden_size, output_size),
+            "W3": std(hidden_size) * np.random.randn(hidden_size, output_size),
             "B3": np.zeros((1, output_size)),
         }
         self.layers = [

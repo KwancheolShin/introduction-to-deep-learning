@@ -1,0 +1,338 @@
+% !TeX program = xelatex
+\documentclass[11pt,a4paper]{article}
+
+% -------------------------------------------------
+% Packages
+% -------------------------------------------------
+\usepackage{kotex}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[left=24mm,right=24mm,top=23mm,bottom=25mm]{geometry}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usepackage{pifont}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,decorations.pathreplacing}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\setstretch{1.14}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+% -------------------------------------------------
+% Colors and boxes
+% -------------------------------------------------
+\definecolor{deepblue}{RGB}{34,71,120}
+\definecolor{softblue}{RGB}{239,246,253}
+\definecolor{softgray}{RGB}{246,247,249}
+\definecolor{softgreen}{RGB}{239,249,242}
+\definecolor{softyellow}{RGB}{255,249,229}
+\definecolor{codegray}{RGB}{248,248,248}
+
+\newtcolorbox{keybox}[1][]{
+  colback=softblue,
+  colframe=deepblue,
+  boxrule=0.7pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{thinkbox}[1][]{
+  colback=softyellow,
+  colframe=orange!70!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{remarkbox}[1][]{
+  colback=softgray,
+  colframe=black!45,
+  boxrule=0.5pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{mlbox}[1][]{
+  colback=softgreen,
+  colframe=green!45!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+% -------------------------------------------------
+% Code style
+% -------------------------------------------------
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  stringstyle=\color{black!75},
+  numbers=left,
+  numberstyle=\tiny\color{black!55},
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true
+}
+\lstset{style=pythonstyle}
+
+% -------------------------------------------------
+% Math commands
+% -------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\grad}{\nabla}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\sigmoid}{\sigma}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\softmax}{\operatorname{softmax}}
+
+% -------------------------------------------------
+% Header / footer
+% -------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Introduction to Deep Learning and Practice}
+\rhead{Midterm Exam: Solutions}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=deepblue,
+  urlcolor=deepblue
+}
+
+% =================================================
+
+% source tag of a problem
+\newcommand{\src}[1]{{\unskip\nobreak\hfil\penalty50\hskip1em\hbox{}\nobreak\hfill\mbox{\small\color{black!50}[#1]}}}
+% a problem block
+\newlist{problems}{enumerate}{1}
+\setlist[problems]{label=\textbf{\arabic*.},leftmargin=2.2em,itemsep=1.0em}
+
+\newtcolorbox{solbox}{breakable,colback=softgreen,colframe=green!45!black,boxrule=0.6pt,arc=2mm,
+  title=풀이,fonttitle=\bfseries,before skip=6pt,after skip=4pt}
+% =================================================
+\begin{document}
+% =================================================
+
+\begin{center}
+{\LARGE\bfseries 중간고사 정답 및 풀이}\\[0.35em]
+{\large 딥러닝개론및연습 $\cdot$ 2026년 2학기}\\[1.0em]
+\end{center}
+
+\begin{problems}
+
+\item $f(x,y)=x^4+xy+y^2$에 대하여 $(x_0,y_0)=(1,0)$에서 Newton step을 계산하라.
+즉 $\bm g_0=\nabla f(1,0)$, $H_0=H(1,0)$를 구하고 연립방정식 $H_0\bm p_0=-\bm g_0$를 풀어 $(x_1,y_1)$을 구하라.
+
+\begin{solbox}
+$\nabla f=(4x^3+y,\ x+2y)$, $H=\begin{pmatrix}12x^2&1\\1&2\end{pmatrix}$이므로
+\[
+\bm g_0=(4,\ 1),
+\qquad
+H_0=\begin{pmatrix}12&1\\1&2\end{pmatrix},
+\qquad
+\det H_0=23.
+\]
+$H_0\bm p_0=-\bm g_0$, 즉 $12p_1+p_2=-4$, $p_1+2p_2=-1$을 풀면
+\[
+\bm p_0=\Bigl(-\frac{7}{23},\ -\frac{8}{23}\Bigr)\approx(-0.304,\ -0.348),
+\qquad
+(x_1,y_1)=\Bigl(\frac{16}{23},\ -\frac{8}{23}\Bigr)\approx(0.696,\ -0.348).
+\]
+(검산: $12\cdot(-\tfrac{7}{23})-\tfrac{8}{23}=-4$, $-\tfrac{7}{23}+2\cdot(-\tfrac{8}{23})=-1$.)
+\end{solbox}
+
+\item 활성화 함수의 미분에 관한 문제이다.
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $\sigmoid(a)=\dfrac{1}{1+e^{-a}}$에 대하여 $\sigmoid'(a)=\sigmoid(a)\bigl(1-\sigmoid(a)\bigr)$임을 보이고,
+$\sigmoid'(a)$의 최댓값과 그때의 $a$를 구하라.
+\item (a)의 결과를 이용하여, sigmoid를 쓰는 층을 여러 개 쌓으면 역전파에서 gradient가 작아지는 이유를 설명하라.
+\end{enumerate}
+
+\begin{solbox}
+\begin{enumerate}[label=(\alph*),leftmargin=1.8em]
+\item $\sigmoid'(a)=\dfrac{e^{-a}}{(1+e^{-a})^2}=\dfrac{1}{1+e^{-a}}\cdot\dfrac{e^{-a}}{1+e^{-a}}=\sigmoid(a)\bigl(1-\sigmoid(a)\bigr)$.
+$\sigmoid(1-\sigmoid)=\frac14-\bigl(\sigmoid-\frac12\bigr)^2\le\frac14$이고 등호는 $\sigmoid(a)=\frac12$, 즉 $a=0$일 때이다.
+최댓값은 $\frac14$ ($a=0$).
+\item 역전파에서 sigmoid 층을 하나 지날 때마다 $\sigmoid'(a)\le\frac14$가 곱해진다.
+$k$개 층을 지나면 gradient가 많아야 $(\frac14)^k$배가 되어, 입력에 가까운 층일수록 gradient가 지수적으로 작아진다 (기울기 소실).
+$|a|$가 커서 sigmoid가 포화되면 $\sigmoid'(a)\approx0$이므로 더 심해진다.
+\end{enumerate}
+\end{solbox}
+
+\item
+
+XOR 문제를 은닉층이 1개이고 출력층에 softmax를 사용하는 신경망으로 학습시키는 과정을 연습해 보자.
+입력 $X=(x_1,x_2)$, 정답 레이블의 원핫 인코딩 $t=(t_1,t_2)$이고, XOR 데이터는
+$(0,0)\to(1,0)$, $(1,0)\to(0,1)$, $(0,1)\to(0,1)$, $(1,1)\to(1,0)$이다.
+$A=(a_1,a_2)$, $Z=(z_1,z_2)$, $U=(u_1,u_2)$, $Y=(y_1,y_2)$라 하고, 가중치와 편이를
+\[
+W^{(1)}=\begin{pmatrix}w^{(1)}_{11}&w^{(1)}_{12}\\ w^{(1)}_{21}&w^{(1)}_{22}\end{pmatrix},\quad
+B^{(1)}=\bigl(b^{(1)}_1,b^{(1)}_2\bigr),\quad
+W^{(2)}=\begin{pmatrix}w^{(2)}_{11}&w^{(2)}_{12}\\ w^{(2)}_{21}&w^{(2)}_{22}\end{pmatrix},\quad
+B^{(2)}=\bigl(b^{(2)}_1,b^{(2)}_2\bigr)
+\]
+라 하자. 신경망의 순전파는
+\[
+A=XW^{(1)}+B^{(1)},\quad Z=h(A),\quad U=ZW^{(2)}+B^{(2)},\quad Y=\softmax(U),
+\]
+\[
+l=-\sum_{i=1}^{2}t_i\log y_i
+\]
+이다. 초기 가중치와 편이가
+\[
+W^{(1)}_0=\begin{pmatrix}2&-1\\-2&2\end{pmatrix},\quad
+B^{(1)}_0=(1,0),\quad
+W^{(2)}_0=\begin{pmatrix}-1&1\\-2&2\end{pmatrix},\quad
+B^{(2)}_0=(1,-1)
+\]
+일 때,
+
+데이터 $X_4=(1,1)$, $t_4=(1,0)$에 대한 온라인 학습을 진행하여 가중치를 업데이트하여라.
+$h$는 ReLU ($x\ge0$이면 $x$, $x<0$이면 $0$)이고 학습률은 $1$이다.
+순전파 값 $A$, $Z$, $U$, $Y$, $l$과 역전파 값 $\pd{l}{U}$, $\pd{l}{W^{(2)}}$, $\pd{l}{B^{(2)}}$, $\pd{l}{Z}$, $\pd{l}{A}$,
+$\pd{l}{W^{(1)}}$, $\pd{l}{B^{(1)}}$을 차례로 구하고,
+이를 이용하여 경사하강법으로 갱신된 매개변수 $W^{(1)}_1$, $B^{(1)}_1$, $W^{(2)}_1$, $B^{(2)}_1$을 구하라.
+(필요하면 $c_1:=\dfrac{e^{4}}{1+e^{4}}\approx0.98$, $c_2:=\log\bigl(1+e^{4}\bigr)\approx4.02$로 두고, 이를 이용하여 식을 나타내어라.)
+
+\begin{solbox}
+\textbf{순전파}
+\[
+A=XW^{(1)}_0+B^{(1)}_0=(2-2+1,\ -1+2+0)=(1,\ 1),
+\qquad
+Z=h(A)=(1,\ 1),
+\]
+\[
+U=ZW^{(2)}_0+B^{(2)}_0=(-1-2+1,\ 1+2-1)=(-2,\ 2).
+\]
+softmax의 분자와 분모에 $e^{2}$를 곱하면
+\[
+Y=\softmax(U)=\Bigl(\frac{e^{-2}}{e^{-2}+e^{2}},\ \frac{e^{2}}{e^{-2}+e^{2}}\Bigr)
+=\Bigl(\frac{1}{1+e^{4}},\ \frac{e^{4}}{1+e^{4}}\Bigr),
+\]
+\[
+l=-\log y_1=-\log\frac{1}{1+e^{4}}=\log\bigl(1+e^{4}\bigr).
+\]
+문제에서 정한
+\[
+c_1=\frac{e^{4}}{1+e^{4}}\approx0.98,
+\qquad
+c_2=\log\bigl(1+e^{4}\bigr)\approx4.02
+\]
+을 쓰면 $Y=(1-c_1,\ c_1)$, $l=c_2$이다. 이후의 모든 값은 $c_1$로 나타낼 수 있으므로 계산기 없이 식으로 끝까지 계산할 수 있다.
+
+\textbf{역전파}
+\[
+\pd{l}{U}=Y-t=(1-c_1-1,\ c_1-0)=(-c_1,\ c_1),
+\qquad
+\pd{l}{B^{(2)}}=\pd{l}{U}=(-c_1,\ c_1),
+\]
+\[
+\pd{l}{W^{(2)}}=Z\T\pd{l}{U}=\begin{pmatrix}1\\1\end{pmatrix}(-c_1,\ c_1)=\begin{pmatrix}-c_1&c_1\\-c_1&c_1\end{pmatrix},
+\]
+\[
+\pd{l}{Z}=\pd{l}{U}\bigl(W^{(2)}_0\bigr)\T
+=(-c_1,\ c_1)\begin{pmatrix}-1&-2\\1&2\end{pmatrix}
+=(c_1+c_1,\ 2c_1+2c_1)=(2c_1,\ 4c_1),
+\]
+\[
+\pd{l}{A}=\pd{l}{Z}\odot h'(A)=(2c_1,\ 4c_1)\quad(A=(1,1)>0\text{이므로 그대로}),
+\]
+\[
+\pd{l}{W^{(1)}}=X\T\pd{l}{A}=\begin{pmatrix}1\\1\end{pmatrix}(2c_1,\ 4c_1)=\begin{pmatrix}2c_1&4c_1\\2c_1&4c_1\end{pmatrix},
+\qquad
+\pd{l}{B^{(1)}}=\pd{l}{A}=(2c_1,\ 4c_1).
+\]
+\textbf{갱신} (학습률 $1$: $W\leftarrow W-\pd{l}{W}$)
+\[
+W^{(1)}_1=\begin{pmatrix}2-2c_1&-1-4c_1\\-2-2c_1&2-4c_1\end{pmatrix},
+\qquad
+B^{(1)}_1=(1-2c_1,\ -4c_1),
+\]
+\[
+W^{(2)}_1=\begin{pmatrix}-1+c_1&1-c_1\\-2+c_1&2-c_1\end{pmatrix},
+\qquad
+B^{(2)}_1=(1+c_1,\ -1-c_1).
+\]
+\textbf{수치} ($c_1\approx0.98$, $c_2\approx4.02$를 대입하면)
+\[
+Y\approx(0.02,\ 0.98),
+\qquad
+\pd{l}{U}\approx(-0.98,\ 0.98),
+\qquad
+\pd{l}{Z}=\pd{l}{A}\approx(1.96,\ 3.92),
+\]
+\[
+W^{(1)}_1\approx\begin{pmatrix}0.04&-4.92\\-3.96&-1.92\end{pmatrix},
+\qquad
+B^{(1)}_1\approx(-0.96,\ -3.92),
+\]
+\[
+W^{(2)}_1\approx\begin{pmatrix}-0.02&0.02\\-1.02&1.02\end{pmatrix},
+\qquad
+B^{(2)}_1\approx(1.98,\ -1.98).
+\]
+(정확한 값은 $c_1=0.98201\ldots$, $c_2=4.01815\ldots$이며 위의 값과 소수 셋째 자리에서만 다르다.
+갱신된 가중치로 같은 데이터를 다시 계산하면 손실은 약 $4.02\to0.02$로 줄어든다.)
+\end{solbox}
+
+\item 함수 $f(x,y)=\frac{1}{20}x^2+y^2$에 대해서 모멘텀 method로 최적화를 수행하고자 한다. 시작점은 $(x_0,y_0)=(-7,2)$이다.
+$\bm g_k=\nabla f(x_k,y_k)$는 $k$번째 단계의 gradient, $W_k=(x_k,y_k)$ 라 할 때, 
+모멘텀은 다음과 같이 매개변수 $W$를 갱신한다.
+\[
+\bm v_{k+1}=\beta\,\bm v_k-\alpha\,\bm g_k,
+\qquad
+W_{k+1}=W_k+\bm v_{k+1},
+\qquad
+\bm v_0=\bm 0
+\]
+
+모멘텀 ($\alpha=0.1$, $\beta=0.9$)으로 $\bm v_1$, $(x_1,y_1)$, $\bm v_2$, $(x_2,y_2)$를 구하여라.
+
+\begin{solbox}
+$\bm g_k=\nabla f(x_k,y_k)=\bigl(x_k/10,\ 2y_k\bigr)$이다.
+\[
+\bm g_0=(-0.7,\ 4),
+\qquad
+\bm v_1=-0.1\,\bm g_0=(0.07,\ -0.4),
+\qquad
+(x_1,y_1)=(-6.93,\ 1.6),
+\]
+\[
+\bm g_1=(-0.693,\ 3.2),
+\]
+\[
+\bm v_2=0.9\,(0.07,\ -0.4)-0.1\,(-0.693,\ 3.2)=(0.1323,\ -0.68),
+\]
+\[
+(x_2,y_2)=(x_1,y_1)+\bm v_2=(-6.7977,\ 0.92).
+\]
+
+\end{solbox}
+
+\end{problems}
+
+\end{document}

@@ -1,0 +1,356 @@
+% !TeX program = xelatex
+\documentclass[11pt,a4paper]{article}
+
+% -------------------------------------------------
+% Packages
+% -------------------------------------------------
+\usepackage{kotex}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage[left=24mm,right=24mm,top=23mm,bottom=25mm]{geometry}
+\usepackage{booktabs,array}
+\usepackage{enumitem}
+\usepackage{setspace}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usepackage{pifont}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,decorations.pathreplacing}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\setstretch{1.14}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+
+% -------------------------------------------------
+% Colors and boxes
+% -------------------------------------------------
+\definecolor{deepblue}{RGB}{34,71,120}
+\definecolor{softblue}{RGB}{239,246,253}
+\definecolor{softgray}{RGB}{246,247,249}
+\definecolor{softgreen}{RGB}{239,249,242}
+\definecolor{softyellow}{RGB}{255,249,229}
+\definecolor{codegray}{RGB}{248,248,248}
+
+\newtcolorbox{keybox}[1][]{
+  colback=softblue,
+  colframe=deepblue,
+  boxrule=0.7pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{thinkbox}[1][]{
+  colback=softyellow,
+  colframe=orange!70!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{remarkbox}[1][]{
+  colback=softgray,
+  colframe=black!45,
+  boxrule=0.5pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+\newtcolorbox{mlbox}[1][]{
+  colback=softgreen,
+  colframe=green!45!black,
+  boxrule=0.6pt,
+  arc=2mm,
+  title=#1,
+  fonttitle=\bfseries
+}
+
+% -------------------------------------------------
+% Code style
+% -------------------------------------------------
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\bfseries,
+  commentstyle=\itshape\color{black!60},
+  stringstyle=\color{black!75},
+  numbers=left,
+  numberstyle=\tiny\color{black!55},
+  numbersep=8pt,
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true
+}
+\lstset{style=pythonstyle}
+
+% -------------------------------------------------
+% Math commands
+% -------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\grad}{\nabla}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\sigmoid}{\sigma}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\softmax}{\operatorname{softmax}}
+
+% -------------------------------------------------
+% Header / footer
+% -------------------------------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{Introduction to Deep Learning and Practice}
+\rhead{CNN: Answers}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=deepblue,
+  urlcolor=deepblue
+}
+
+% =================================================
+
+% source tag of a problem
+\newcommand{\src}[1]{{\unskip\nobreak\hfil\penalty50\hskip1em\hbox{}\nobreak\hfill\mbox{\small\color{black!50}[#1]}}}
+% a problem block
+\newlist{problems}{enumerate}{1}
+\setlist[problems]{label=\textbf{\arabic*.},leftmargin=2.2em,itemsep=0.2em}
+% =================================================
+% a solution block
+\newtcolorbox{sol}{breakable,enhanced,colback=softgray,colframe=black!35,boxrule=0.4pt,arc=1mm,
+  left=2mm,right=2mm,top=1mm,bottom=1mm,before upper={\textbf{풀이.}\ }}
+\setlist[problems]{label=\textbf{\arabic*.},leftmargin=2.2em,itemsep=0.9em}
+\begin{document}
+
+\begin{center}
+{\LARGE\bfseries 연습문제 정답과 풀이}\\[0.35em]
+{\large 합성곱 신경망 (CNN) $\cdot$ 딥러닝개론및연습 2026년 2학기}
+\end{center}
+
+강의노트 끝의 연습문제 7개의 정답과 풀이이다. 문제를 다시 적고 그 아래에 풀이를 쓴다.
+2, 4, 5, 6, 7번의 결과는 \texttt{연습문제\_정답/code/cnn\_exercise\_runs.py}를 이 컴퓨터에서 실제로 실행하여 확인하였다
+(손으로 계산한 값과 같다).
+
+\begin{problems}
+
+% ---------------------------------------------------------------- 1
+\item 다음 합성곱 계층의 출력 크기를 구하라.
+(a) 입력 $(32,32)$, 필터 $(5,5)$, 패딩 $2$, 스트라이드 $1$.
+(b) 입력 $(227,227)$, 필터 $(11,11)$, 패딩 $0$, 스트라이드 $4$ (AlexNet의 첫 번째 층).
+(c) 입력 $(28,28)$에 $2\times2$ 최대 풀링 (스트라이드 $2$)을 두 번 적용한 결과.
+
+\begin{sol}
+$OH=\bigl\lfloor\frac{H+2P-FH}{S}\bigr\rfloor+1$을 쓴다 (가로도 같다).
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt]
+\item (a) $\frac{32+4-5}{1}+1=32$, 출력 $\mathbf{(32,32)}$. 필터 $5\times5$에 패딩 $2$를 주면 크기가 유지된다.
+\item (b) $\frac{227+0-11}{4}+1=\frac{216}{4}+1=55$, 출력 $\mathbf{(55,55)}$. ($224$로 계산하면 $\frac{213}{4}$가 정수가 아니다.)
+\item (c) $28\to\frac{28-2}{2}+1=14\to\frac{14-2}{2}+1=7$, 출력 $\mathbf{(7,7)}$.
+\end{itemize}
+\end{sol}
+
+% ---------------------------------------------------------------- 2
+\item 입력 $\begin{pmatrix}1&0&2&1\\0&3&1&0\\2&1&0&4\\1&0&1&2\end{pmatrix}$에
+필터 $\begin{pmatrix}1&0\\0&-1\end{pmatrix}$를 스트라이드 $1$, 패딩 $0$으로 적용한 결과를 손으로 계산하라.
+같은 입력에 $2\times2$ 최대 풀링 (스트라이드 $2$, 패딩 $0$)을 적용한 결과도 구하라.
+
+\begin{sol}
+출력 크기는 $4-2+1=3$이므로 $3\times3$이다.
+필터를 겹친 $2\times2$ 영역의 왼쪽 위 값에서 오른쪽 아래 값을 빼면 된다: $y_{ij}=x_{ij}-x_{i+1,j+1}$.
+\[
+\begin{pmatrix}1-3&0-1&2-0\\0-1&3-0&1-4\\2-0&1-1&0-2\end{pmatrix}
+=\boxed{\begin{pmatrix}-2&-1&2\\-1&3&-3\\2&0&-2\end{pmatrix}}.
+\]
+최대 풀링은 겹치지 않는 $2\times2$ 영역 네 개의 최댓값이다.
+\[
+\begin{pmatrix}\max(1,0,0,3)&\max(2,1,1,0)\\\max(2,1,1,0)&\max(0,4,1,2)\end{pmatrix}
+=\boxed{\begin{pmatrix}3&2\\2&4\end{pmatrix}}.
+\]
+\end{sol}
+
+% ---------------------------------------------------------------- 3
+\item RGB 이미지 ($C=3$)에 $3\times3$ 필터 $64$개를 쓰는 합성곱 계층의 매개변수(가중치와 편향) 수를 구하라.
+입력이 $(3,32,32)$이고 패딩 $1$일 때, 같은 크기의 출력 $(64,32,32)$을 완전연결 계층으로 만든다면 가중치는 몇 개가 필요한가?
+
+\begin{sol}
+필터 하나는 $(3,3,3)$으로 가중치 $27$개, 필터가 $64$개이고 편향은 필터마다 하나이므로
+\[
+64\cdot3\cdot3\cdot3+64=1728+64=\mathbf{1792}.
+\]
+완전연결 계층이면 입력 $3\cdot32\cdot32=3072$개와 출력 $64\cdot32\cdot32=65536$개를 모두 잇는다.
+\[
+3072\times65536=\mathbf{201326592}\ (\text{약 }2\text{억})
+\]
+개의 가중치가 필요하다. 합성곱 계층의 약 $11$만 배이다.
+합성곱 계층은 (1) 출력 하나가 가까운 $3\times3$ 영역만 보고 (국소 연결), (2) 모든 위치가 같은 필터를 쓰기 (가중치 공유) 때문에 매개변수가 이렇게 적다.
+\end{sol}
+
+% ---------------------------------------------------------------- 4
+\item 2번 문제의 최대 풀링에서 출력 쪽 gradient가 $\begin{pmatrix}1&2\\3&4\end{pmatrix}$일 때,
+입력 쪽 gradient ($4\times4$)를 구하라.
+
+\begin{sol}
+최대 풀링의 역전파는 각 영역에서 \textbf{최댓값이었던 위치에만} gradient를 그대로 보내고 나머지는 $0$이다
+(최댓값이 아닌 원소는 조금 바뀌어도 출력이 변하지 않기 때문이다).
+최댓값의 위치는 왼쪽 위 영역의 $3$ (1행 1열), 오른쪽 위의 $2$ (0행 2열), 왼쪽 아래의 $2$ (2행 0열), 오른쪽 아래의 $4$ (2행 3열)이다 (0부터 센다). 따라서
+\[
+\pd{L}{X}=\boxed{\begin{pmatrix}0&0&2&0\\0&1&0&0\\3&0&0&4\\0&0&0&0\end{pmatrix}}.
+\]
+ReLU의 역전파와 비슷하게, 순전파에서 ``통과한'' 곳으로만 gradient가 흐른다.
+\end{sol}
+
+% ---------------------------------------------------------------- 5
+\item 길이 $5$인 1차원 입력 $(x_1,\ldots,x_5)$에 길이 $3$인 필터를 스트라이드 $1$로 적용하면 출력은 $3$개이다.
+im2col 행렬 ($3\times3$)을 쓰고, $x_3$이 몇 번 등장하는지 세어 보라.
+이로부터 col2im에서 gradient를 \textbf{더해야} 하는 이유를 설명하라.
+
+\begin{sol}
+출력 하나가 보는 입력 구간을 한 행으로 펼친다.
+\[
+\text{col}=\begin{pmatrix}x_1&x_2&x_3\\x_2&x_3&x_4\\x_3&x_4&x_5\end{pmatrix},\qquad
+\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}=\text{col}\begin{pmatrix}w_1\\w_2\\w_3\end{pmatrix}.
+\]
+$x_3$은 \textbf{$3$번} (세 행 모두) 등장한다. $x_2$, $x_4$는 $2$번, $x_1$, $x_5$는 $1$번이다.
+
+역전파에서 행렬곱의 gradient $\pd{L}{\text{col}}$는 col의 각 \textbf{칸}에 대한 gradient이다.
+그런데 세 칸이 모두 같은 변수 $x_3$의 복사본이다. $x_3$은 $y_1$, $y_2$, $y_3$ 세 출력에 모두 영향을 주므로, 다변수 연쇄법칙에 따라
+\[
+\pd{L}{x_3}=\pd{L}{y_1}w_3+\pd{L}{y_2}w_2+\pd{L}{y_3}w_1
+\]
+처럼 세 경로의 gradient를 \textbf{더해야} 한다. col2im은 각 칸의 gradient를 원래 위치로 되돌리면서 같은 위치로 가는 값들을 더한다.
+(덮어쓰면 마지막 경로의 gradient만 남아 틀린다.) 순전파에서 한 변수가 여러 곳으로 복사되면 역전파에서는 그 gradient들을 더한다는 원리이다.
+\end{sol}
+
+% ---------------------------------------------------------------- 6
+\item SimpleConvNet의 합성곱 계층에 패딩 $2$를 주도록 고쳐 보라.
+\texttt{conv\_out}, \texttt{pool\_out}, \texttt{flat}은 각각 얼마가 되는가?
+Convolution 계층에 \texttt{pad}를 넘기는 부분과 \texttt{flat}의 계산을 고친 뒤,
+\texttt{conv\_basics.py}의 gradient 확인으로 검증하라.
+
+\begin{sol}
+MNIST ($28\times28$, 필터 $5\times5$ $30$개)에서
+\[
+\texttt{conv\_out}=28+2\cdot2-5+1=\mathbf{28},\quad
+\texttt{pool\_out}=28\,//\,2=\mathbf{14},\quad
+\texttt{flat}=30\cdot14\cdot14=\mathbf{5880}.
+\]
+패딩이 없을 때는 $24$, $12$, $4320$이었다. \texttt{W2}가 $4320\times100$에서 $5880\times100$으로 커져 매개변수가 $433890\to\mathbf{589890}$개가 된다.
+
+\textbf{고칠 곳} (\texttt{conv\_layers.py}의 \texttt{SimpleConvNet.\_\_init\_\_}).
+\begin{lstlisting}[numbers=none]
+def __init__(self, input_shape=(1, 28, 28), filter_num=30, filter_size=5,
+             pad=2, hidden_size=100, output_size=10, weight_init_std="he"):
+    C, H, W = input_shape
+    conv_out = H + 2 * pad - filter_size + 1        # 28 + 4 - 5 + 1 = 28
+    pool_out = conv_out // 2                        # 14
+    flat = filter_num * pool_out * pool_out         # 30 * 14 * 14 = 5880
+    ...
+    self.layers = [
+        Convolution(self.params["W1"], self.params["B1"], pad=pad),
+        ...
+\end{lstlisting}
+\texttt{Convolution}에 \texttt{pad}를 넘기지 않으면 순전파의 출력이 $24\times24$로 남아, \texttt{Flatten}의 출력 $4320$이 \texttt{W2}의 행 수 $5880$과 맞지 않아 오류가 난다.
+반대로 \texttt{flat}을 고치지 않으면 \texttt{W2}가 $4320$행이어서 같은 오류가 난다. 두 곳을 함께 고쳐야 한다.
+
+\textbf{gradient 확인.} \texttt{conv\_basics.py}와 같은 작은 network (입력 $(2,8,8)$, $3\times3$ 필터 $3$개, 은닉 $5$, 출력 $4$, 데이터 $5$개, 같은 씨앗)에 패딩 $2$를 주었다.
+이때 $\texttt{conv\_out}=8+4-3+1=10$, $\texttt{pool\_out}=5$, $\texttt{flat}=75$이다.
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+매개변수 & shape & $\max|\text{역전파}-\text{수치 미분}|$ \\
+\midrule
+\texttt{W1} & $(3,2,3,3)$ & $3.3\times10^{-10}$ \\
+\texttt{B1} & $(3,)$ & $5.0\times10^{-10}$ \\
+\texttt{W2} & $(75,5)$ & $5.1\times10^{-10}$ \\
+\texttt{B2} & $(1,5)$ & $2.4\times10^{-10}$ \\
+\texttt{W3} & $(5,4)$ & $2.7\times10^{-10}$ \\
+\texttt{B3} & $(1,4)$ & $1.5\times10^{-10}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+모든 차이가 $10^{-9}$보다 작으므로 패딩을 넣은 역전파도 정확하다.
+패딩한 칸에 대한 gradient는 \texttt{col2im}이 패딩을 잘라 내며 버린다. 패딩은 상수 $0$이라 학습할 값이 아니기 때문이다.
+\end{sol}
+
+% ---------------------------------------------------------------- 7
+\item \texttt{mnist\_cnn\_torch.py}를 고쳐 LeNet과 비슷한 network
+(Conv $5\times5$ $6$개, 패딩 $2$ $\to$ ReLU $\to$ MaxPool $\to$ Conv $5\times5$ $16$개 $\to$ ReLU $\to$ MaxPool $\to$ FC $120$ $\to$ ReLU $\to$ FC $84$ $\to$ ReLU $\to$ FC $10$)를 만들고 학습시켜라.
+각 계층을 지난 뒤의 shape을 표로 정리하고, 매개변수 수와 검증 정확도를 SimpleConvNet과 비교하라.
+
+\begin{sol}
+\texttt{mnist\_cnn\_torch.py}의 \texttt{model}만 다음으로 바꾼다 (나머지: Adam $\alpha=0.001$, 미니배치 $100$, $10$ epoch, 같은 데이터 분할).
+\begin{lstlisting}[numbers=none]
+model = nn.Sequential(
+    nn.Conv2d(1, 6, kernel_size=5, padding=2), nn.ReLU(), nn.MaxPool2d(2),
+    nn.Conv2d(6, 16, kernel_size=5), nn.ReLU(), nn.MaxPool2d(2),
+    nn.Flatten(),
+    nn.Linear(16 * 5 * 5, 120), nn.ReLU(),
+    nn.Linear(120, 84), nn.ReLU(),
+    nn.Linear(84, 10),
+).to(device)
+\end{lstlisting}
+
+\textbf{계층별 shape과 매개변수} (ReLU는 shape을 바꾸지 않으므로 생략).
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+계층 & 출력 shape & 매개변수 수 \\
+\midrule
+입력 & $(1,28,28)$ & \\
+Conv $5\times5$ $6$개, 패딩 $2$ & $(6,28,28)$ & $6\cdot1\cdot25+6=156$ \\
+MaxPool $2\times2$ & $(6,14,14)$ & \\
+Conv $5\times5$ $16$개 & $(16,10,10)$ & $16\cdot6\cdot25+16=2416$ \\
+MaxPool $2\times2$ & $(16,5,5)$ & \\
+Flatten & $400$ & \\
+FC & $120$ & $400\cdot120+120=48120$ \\
+FC & $84$ & $120\cdot84+84=10164$ \\
+FC & $10$ & $84\cdot10+10=850$ \\
+\midrule
+합계 & & $\mathbf{61706}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{SimpleConvNet과 비교} (GPU에서 같은 스크립트로 두 network를 차례로 학습, 미니배치 순서의 씨앗 동일).
+\begin{center}
+\begin{tabular}{lrccc}
+\toprule
+network & 매개변수 수 & 검증 정확도 & test 정확도 & 시간 \\
+\midrule
+SimpleConvNet & $433890$ & $\mathbf{0.9890}$ & $0.9889$ & $21$초 \\
+LeNet 비슷한 network & $61706$ & $0.9872$ & $0.9897$ & $26$초 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{해석.}
+\begin{itemize}[leftmargin=1.5em,itemsep=2pt]
+\item LeNet 비슷한 network는 매개변수가 SimpleConvNet의 약 $\frac17$ ($14\%$)인데 정확도는 거의 같다.
+검증 정확도는 $0.18\%$p (이미지 $9$장) 낮고 test 정확도는 $0.08\%$p 높아서, 어느 쪽이 낫다고 할 수 없는 차이이다.
+\item 매개변수가 적은 이유는 풀링을 두 번 하여 Flatten의 출력이 $400$으로 작기 때문이다.
+SimpleConvNet은 $4320\times100$인 첫 FC 계층에 매개변수의 $99.6\%$가 있다.
+합성곱 층을 하나 더 쌓아 특징 맵을 줄이면, 같은 정확도를 훨씬 적은 매개변수로 얻는다 (다음 주 DeepConvNet의 생각과 같다).
+\item 학습 시간은 LeNet 쪽이 조금 더 길다. 매개변수는 적지만 합성곱 층이 둘이고, 계층 수가 많아 GPU에서 작은 연산을 여러 번 하기 때문이다.
+매개변수의 수와 계산 시간은 다르다.
+\item 씨앗 하나로 한 번씩 학습한 결과이고, GPU 계산은 실행마다 조금 다를 수 있다
+(이 컴퓨터에서 SimpleConvNet을 다른 때 실행하면 test 정확도가 $0.9861$, $0.9886$이었다).
+\end{itemize}
+\end{sol}
+
+\end{problems}
+
+\end{document}

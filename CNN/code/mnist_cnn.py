@@ -55,7 +55,8 @@ def train(net, flatten=False, seed=2):
 # =====================================================
 np.random.seed(1)
 cnn = SimpleConvNet(input_shape=(1, 28, 28), filter_num=30, filter_size=5,
-                    hidden_size=100, output_size=10)
+                    hidden_size=100, output_size=10,
+                    weight_init_std=0.01)             # start small
 print("SimpleConvNet parameters:", cnn.num_params())
 W1_before = cnn.params["W1"].copy()                   # the filters before training
 cnn_result = train(cnn)

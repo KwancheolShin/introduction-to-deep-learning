@@ -104,8 +104,8 @@ class BatchNormalization:
 
     def forward(self, X, train_flg=True):
         if self.running_mean is None:
-            self.running_mean = np.zeros((1, X.shape[1]))
-            self.running_var = np.ones((1, X.shape[1]))
+            self.running_mean = np.zeros((1, X.shape[1])) # (1, m)
+            self.running_var  = np.ones((1, X.shape[1]))  # (1, m)
         if train_flg:                                     # statistics of THIS mini-batch
             mu = np.mean(X, axis=0, keepdims=True)        # (1, m)
             xc = X - mu                                   # (h, m)
@@ -114,13 +114,13 @@ class BatchNormalization:
             xn = xc / std                                 # x_hat (h, m)
             self.h, self.xc, self.std, self.xn = X.shape[0], xc, std, xn
             self.running_mean = self.momentum * self.running_mean + (1 - self.momentum) * mu
-            self.running_var = self.momentum * self.running_var + (1 - self.momentum) * var
+            self.running_var  = self.momentum * self.running_var  + (1 - self.momentum) * var
         else:                                             # test time: running averages
             xn = (X - self.running_mean) / np.sqrt(self.running_var + self.eps)
         return self.gamma * xn + self.beta
 
     def backward(self, dY):
-        self.dbeta = np.sum(dY, axis=0, keepdims=True)              # (1, m)
+        self.dbeta  = np.sum(dY, axis=0, keepdims=True)              # (1, m)
         self.dgamma = np.sum(self.xn * dY, axis=0, keepdims=True)   # (1, m)
         dxn = self.gamma * dY                                       # (h, m)
         dxc = dxn / self.std

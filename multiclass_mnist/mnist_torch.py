@@ -1,5 +1,8 @@
+# %% 0. Setup
 # MNIST classification with PyTorch: a fully connected network
 # Run this file from its own folder; figures are saved to ./figures/*.png
+#   Cells: each '# %%' starts a cell. In VS Code, Run Cell (Shift+Enter) sends one cell to the
+#   Interactive window (variables stay in the kernel); 'python <file>' still runs the whole file.
 
 import os
 import numpy as np
@@ -15,6 +18,7 @@ os.makedirs("figures", exist_ok=True)
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device}")
 
+# %% 1. Data
 # ----------------------------------------------------
 # Data
 # ----------------------------------------------------
@@ -31,6 +35,7 @@ train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 val_loader   = DataLoader(val_set, batch_size=1000)
 test_loader  = DataLoader(test_set, batch_size=1000)
 
+# %% 2. Model, loss, optimizer (re-run this cell to start training from scratch)
 # ----------------------------------------------------
 # Model
 # ----------------------------------------------------
@@ -47,14 +52,21 @@ class MLP(nn.Module):
     def forward(self, x):
         return self.net(x)          # logits
 
-
 model = MLP(hidden=(100,)).to(device)
 print(model)
 print("number of parameters:", sum(p.numel() for p in model.parameters()))
 
-loss_fn = nn.CrossEntropyLoss()
+# model = nn.Sequential(
+#     nn.Linear(784, 100),    # (N, 784) -> (N, 100)
+#     nn.ReLU(),
+#     nn.Linear(100, 10),     # (N, 100) -> (N, 10), logits
+# ).to(device)
+
+
+loss_fn   = nn.CrossEntropyLoss()
 optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
 
+# %% 3. Training and evaluation functions
 # ----------------------------------------------------
 # Training / evaluation
 # ----------------------------------------------------
@@ -87,6 +99,7 @@ def evaluate(model, loader):
     return correct / total
 
 
+# %% 4. Training (takes a while)
 epochs = 10
 loss_history, val_acc_history = [], []
 for epoch in range(1, epochs + 1):
@@ -95,9 +108,11 @@ for epoch in range(1, epochs + 1):
     val_acc_history.append(val_acc)
     print(f"epoch {epoch:2d} | loss {loss_history[-1]:.4f} | val acc {val_acc:.4f}")
 
+# %% 5. Test accuracy: ONCE, at the end
 test_acc = evaluate(model, test_loader)
 print(f"test accuracy: {test_acc:.4f}")
 
+# %% 6. Plots
 # ----------------------------------------------------
 # Plots
 # ----------------------------------------------------
@@ -112,6 +127,7 @@ fig.tight_layout()
 fig.savefig("figures/torch_loss_acc.png", dpi=200, bbox_inches="tight")
 plt.show()
 
+# %% 7. Predictions on the first 10 test images
 # predictions on the first 10 test images
 model.eval()
 with torch.no_grad():
@@ -128,5 +144,6 @@ fig.tight_layout()
 fig.savefig("figures/torch_predictions.png", dpi=200, bbox_inches="tight")
 plt.show()
 
+# %% 8. Save the trained weights
 # save the trained weights
 torch.save(model.state_dict(), "mnist_mlp.pt")

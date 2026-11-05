@@ -1,3 +1,4 @@
+# %%
 # Week: Techniques for Training -- the same MNIST classifier in PyTorch
 #
 #   Everything we built by hand has a PyTorch counterpart:
@@ -23,7 +24,7 @@ from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
 from mnist_data import load_mnist_split
-
+# %%
 FIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "figures")
 os.makedirs(FIG_DIR, exist_ok=True)
 
@@ -44,9 +45,9 @@ def to_dataset(x, t):
 
 
 train_loader = DataLoader(to_dataset(x_train, t_train), batch_size=100, shuffle=True)
-val_loader = DataLoader(to_dataset(x_val, t_val), batch_size=1000)
-test_loader = DataLoader(to_dataset(x_test, t_test), batch_size=1000)
-
+val_loader   = DataLoader(to_dataset(x_val, t_val), batch_size=1000)
+test_loader  = DataLoader(to_dataset(x_test, t_test), batch_size=1000)
+# %%
 # =====================================================
 # Model: [Linear -> BatchNorm -> ReLU -> (Dropout)] x k -> Linear,  He initialization
 # =====================================================
@@ -68,18 +69,34 @@ def make_mlp(hidden=(100, 100, 100, 100), use_batchnorm=True, dropout_ratio=0.0)
             nn.init.zeros_(m.bias)
     return model
 
-
 model = make_mlp().to(device)
 print(model)
 print("number of parameters:", sum(p.numel() for p in model.parameters()))
 
+
+# model = nn.Sequential(
+#     nn.Linear(784, 100), nn.BatchNorm1d(100), nn.ReLU(),   # (N, 784) -> (N, 100)
+#     nn.Linear(100, 100), nn.BatchNorm1d(100), nn.ReLU(),
+#     nn.Linear(100, 100), nn.BatchNorm1d(100), nn.ReLU(),
+#     nn.Linear(100, 100), nn.BatchNorm1d(100), nn.ReLU(),
+#     nn.Linear(100, 10),                                    # scores U; softmax is inside the loss
+# ).to(device)
+
+# for m in model.modules():                                  # He initialization
+#     if isinstance(m, nn.Linear):
+#         nn.init.kaiming_normal_(m.weight, nonlinearity="relu")   # std = sqrt(2 / n_in)
+#         nn.init.zeros_(m.bias)
+
 loss_fn = nn.CrossEntropyLoss()                  # softmax + cross-entropy, averaged over the batch
 
 # AdamW: decay only the weights W (2-D), not B, gamma, beta (1-D) -- the same choice as our code
-decay = [p for p in model.parameters() if p.dim() == 2]
-no_decay = [p for p in model.parameters() if p.dim() == 1]
-optimizer = torch.optim.AdamW([{"params": decay, "weight_decay": 0.01},
-                               {"params": no_decay, "weight_decay": 0.0}], lr=0.001)
+decay     = [p for p in model.parameters() if p.dim() == 2]
+no_decay  = [p for p in model.parameters() if p.dim() == 1]
+optimizer = torch.optim.AdamW([{"params": decay,    "weight_decay": 0.01},
+                               {"params": no_decay, "weight_decay": 0.0 }], lr=0.001)
+
+# The usual one-line form (uncomment to compare): decays EVERY parameter, also B, gamma, beta
+# optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3, weight_decay=0.01)
 
 # =====================================================
 # Training and evaluation
@@ -89,7 +106,7 @@ def train_one_epoch(model, loader):
     total_loss, n = 0.0, 0
     for xb, yb in loader:
         xb, yb = xb.to(device), yb.to(device)
-        loss = loss_fn(model(xb), yb)             # forward: the graph is recorded
+        loss   = loss_fn(model(xb), yb)           # forward: the graph is recorded
         optimizer.zero_grad()                     # gradients ADD UP in .grad, so clear them first
         loss.backward()                           # backward: dL/dW for every parameter
         optimizer.step()                          # = optimizer.update(params, grads)
@@ -108,7 +125,7 @@ def accuracy(model, loader):
         n += len(yb)
     return correct / n
 
-
+# %%
 epochs = 15
 history = {"loss": [], "train": [], "val": []}
 best_val, best_state = 0.0, None
@@ -121,12 +138,30 @@ for epoch in range(1, epochs + 1):
     if history["val"][-1] > best_val:             # keep the epoch with the best VALIDATION accuracy
         best_val, best_epoch = history["val"][-1], epoch
         best_state = copy.deepcopy(model.state_dict())
+        # Checkpoint file of the best epoch (uncomment to use): model AND optimizer, so training can resume
+        # torch.save({"epoch": epoch, "val_acc": best_val,
+        #             "model": model.state_dict(),            # parameters + BatchNorm running statistics
+        #             "optimizer": optimizer.state_dict()},   # AdamW's m, v and step counts
+        #            "ckpt.pt")
 
 # Only at the very end: the test data, ONCE, with the chosen model
 model.load_state_dict(best_state)
 print(f"chosen epoch {best_epoch}: val acc {best_val:.4f}, test acc {accuracy(model, test_loader):.4f}")
-# torch.save(model.state_dict(), "mnist_torch.pt")   # to keep the trained weights
+# torch.save(model.state_dict(), "mnist_torch.pt")   # to keep only the trained weights
 
+# Loading the checkpoint later (uncomment to use): build the SAME model first, then fill in the values
+# ckpt = torch.load("ckpt.pt", map_location=device, weights_only=True)
+# model = make_mlp().to(device)
+# model.load_state_dict(ckpt["model"])
+# print(f"loaded epoch {ckpt['epoch']}: val acc {ckpt['val_acc']:.4f}, test acc {accuracy(model, test_loader):.4f}")
+# # only to CONTINUE training: rebuild the optimizer for the new model (as above), then load its state
+# decay    = [p for p in model.parameters() if p.dim() == 2]
+# no_decay = [p for p in model.parameters() if p.dim() == 1]
+# optimizer = torch.optim.AdamW([{"params": decay,    "weight_decay": 0.01},
+#                                {"params": no_decay, "weight_decay": 0.0 }], lr=0.001)
+# optimizer.load_state_dict(ckpt["optimizer"])
+
+# %%
 # =====================================================
 # Figure
 # =====================================================
@@ -143,4 +178,7 @@ ax[1].grid(True, alpha=0.3)
 ax[1].legend()
 fig.tight_layout()
 fig.savefig(os.path.join(FIG_DIR, "torch_mnist.png"), dpi=200, bbox_inches="tight")
+plt.show()
 plt.close(fig)
+
+# %%

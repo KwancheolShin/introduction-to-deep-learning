@@ -131,7 +131,7 @@
 
 \graphicspath{{slides_figures/}}
 
-\title{학습 관련 기술: 코드 읽기}
+\title{학습관련기술: 코드 읽기}
 \subtitle{NumPy 모듈 조립 $\cdot$ 실험 코드 6개 $\cdot$ \texttt{mnist\_torch.py}}
 \date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
 
@@ -142,28 +142,14 @@
 \titlepage
 \end{frame}
 
-% =================================================
-\begin{frame}{이번 시간의 핵심 질문}
-\begin{keybox}[이번 시간의 핵심 질문]
-\begin{itemize}
-\item 최적화 기법, 가중치 초기화, 배치 정규화, 가중치 감소, 드롭아웃을 \textbf{코드로는} 어떻게 쓸까?
-\item 따로따로 배운 기법들을 \textbf{한 프로그램에 모두} 넣으면 어떻게 될까?
-\item 노트의 그래프들은 \textbf{어떤 실험}으로 만든 것이고, 공정한 비교를 위해 무엇을 맞췄을까?
-\item 같은 프로그램을 PyTorch로 쓰면 무엇이 짧아지고, 무엇이 그대로일까?
-\end{itemize}
-\end{keybox}
-\vskip2mm
-\begin{center}
-\large $\Rightarrow$ \textbf{우리가 만든 NumPy 모듈 $\to$ 최종 코드 $\to$ 실험 코드 $\to$ PyTorch}
-\end{center}
-\end{frame}
 
 \begin{frame}{학습목표}
 \begin{enumerate}
+    \item 학습관련기술 강의 자료의 코드를 설명할 수 있다.
 \item \code{optimizers.py}의 다섯 가지 갱신 규칙과 AdamW를 코드로 읽을 수 있다
 \item \code{layers.py}에 새로 생긴 \code{BatchNormalization}, \code{Dropout}, 가중치 감소를 읽을 수 있다
-\item 세 모듈을 조립한 최종 코드 \code{mnist\_numpy\_final.py}를 처음부터 끝까지 설명할 수 있다
-\item 실험 코드 6개가 \textbf{무엇을 같게 두고 무엇만 바꾸는지} 설명할 수 있다
+\item 세 모듈을 조립한 Numpy 최종 코드 \code{mnist\_numpy\_final.py}를 처음부터 끝까지 설명할 수 있다
+\item 실험 코드 6개를 설명할 수 있다
 \item \code{mnist\_torch.py}를 NumPy 최종 코드와 한 줄씩 대응시킬 수 있다
 \end{enumerate}
 \end{frame}

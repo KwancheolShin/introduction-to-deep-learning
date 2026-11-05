@@ -1,3 +1,4 @@
+# %% 0. Setup
 # Week: Techniques for Training -- the final MNIST classifier, built from OUR numpy modules
 #   mnist_data.py  : data (55000 train / 5000 validation / 10000 test)
 #   layers.py      : MultiLayerNet with He initialization, batch norm, (dropout), ReLU
@@ -5,6 +6,8 @@
 # The same settings as mnist_torch.py, so the two programs can be compared line by line.
 #   * keep the epoch with the best VALIDATION accuracy; the test data is used only ONCE at the end
 # Figures are saved to ../figures/ (next to main.tex), wherever this file is run from
+#   Cells: each '# %%' starts a cell. In VS Code, Run Cell (Shift+Enter) sends one cell to the
+#   Interactive window (variables stay in the kernel); 'python <file>' still runs the whole file.
 
 import os
 import time
@@ -19,12 +22,14 @@ from optimizers import AdamW
 FIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "figures")
 os.makedirs(FIG_DIR, exist_ok=True)
 
+# %% 1. Data
 # =====================================================
 # Data
 # =====================================================
 x_train, t_train, x_val, t_val, x_test, t_test = load_mnist_split()   # 55000 / 5000 / 10000
 print("train:", x_train.shape, " validation:", x_val.shape, " test:", x_test.shape)
 
+# %% 2. Model and optimizer (re-run this cell to start training from scratch)
 # =====================================================
 # Model: [Affine -> BatchNorm -> ReLU -> (Dropout)] x 4 -> Affine -> Softmax-loss,  He initialization
 # =====================================================
@@ -37,9 +42,18 @@ print("number of parameters:", net.num_params())
 
 optimizer = AdamW(lr=0.001, weight_decay=0.01)   # decays only the weights W1, W2, ...
 
+# %% 3. Save / restore the network state
 # =====================================================
 # Save / restore everything the network has learned
 #   params: W, B, gamma, beta     +     running mean / var of every BatchNorm layer
+#
+#   세 가지 copy (이름은 같지만 서로 다른 것):
+#     copy.copy(d)      copy 모듈의 함수, 얕은 복사: dict는 새로 만들지만 안의 배열은 원래 것을 공유한다
+#                       (학습 중 params[key] -= ... 가 그 배열을 그 자리에서 바꾸므로, 복사본도 같이 바뀐다)
+#     copy.deepcopy(d)  copy 모듈의 함수, 깊은 복사: dict도, 안의 배열도 모두 새로 만든다 -> params를 안전하게 저장
+#     arr.copy()        numpy 배열 자신의 메서드: 새 메모리를 잡아 숫자 값을 전부 복사한다
+#                       (숫자 배열에는 참조가 아니라 숫자가 들어 있으므로, 이것만으로 완전한 복사이다)
+#   -> 배열이 든 dict는 copy.deepcopy(...),  배열 하나는 arr.copy()  (torch tensor는 t.clone())
 # =====================================================
 def get_state(net):
     state = {"params": copy.deepcopy(net.params), "bn": []}
@@ -56,6 +70,7 @@ def set_state(net, state):
     for layer, (mean, var) in zip(bn_layers, state["bn"]):
         layer.running_mean, layer.running_var = mean.copy(), var.copy()
 
+# %% 4. Training (takes a while)
 # =====================================================
 # Training
 # =====================================================
@@ -87,6 +102,7 @@ for epoch in range(1, epochs + 1):
         best_val, best_epoch = history["val"][-1], epoch
         best_state = get_state(net)
 
+# %% 5. Test accuracy: ONCE, at the end
 # =====================================================
 # Only at the very end: the test data, ONCE, with the chosen network
 # =====================================================
@@ -94,6 +110,7 @@ set_state(net, best_state)
 print(f"chosen epoch {best_epoch}: val acc {net.accuracy(x_val, t_val):.4f}, "
       f"test acc {net.accuracy(x_test, t_test):.4f}")
 
+# %% 6. Figure
 # =====================================================
 # Figure
 # =====================================================
