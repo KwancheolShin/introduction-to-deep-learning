@@ -16,5 +16,6 @@ Folders with a `연습문제_정답` subfolder also have answer keys for the exe
 | [08_학습관련기술](08_학습관련기술) | 7 | Techniques for training | notes, code-reading slides, `code/` (scripts and Colab notebooks), answer keys |
 | [09_중간고사](09_중간고사) | 8 | Midterm exam | exam, solution, practice exam |
 | [10_CNN](10_CNN) | 9 | Convolutional neural networks | notes, slides, code-reading slides, `code/`, answer keys |
+| [13_PINN](13_PINN) | 12–13 | Physics-informed neural networks | notes, slides, `code/` |
 
 `figures/` holds figures that the notes in `03_GD_Newton` include.
