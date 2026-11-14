@@ -1,0 +1,11 @@
+\begin{tikzpicture}[node distance=6mm]
+\tikzset{lay/.append style={minimum width=0mm}}
+\node[lay=tokc] (c) {context word\\one-hot vector\\of length $10^6$};
+\node[lay=hotc,right=of c] (w) {$\times\,W_{\text{in}}$\\$10^6\times100$};
+\node[lay=attc,right=of w] (h) {$\vect h$\\$100$};
+\node[lay=hotc,right=of h] (wo) {$\times\,W_{\text{out}}$\\$100\times10^6$};
+\node[lay=black,right=of wo] (s) {softmax\\over $10^6$\\words};
+\draw[ar] (c) -- (w); \draw[ar] (w) -- (h); \draw[ar] (h) -- (wo); \draw[ar] (wo) -- (s);
+\node[below=3mm of w,lab,text=hotc!80!black] {problem 1: a product with\\a vector of almost all zeros};
+\node[below=3mm of wo,lab,text=hotc!80!black,xshift=8mm] {problem 2: a score for\\each of the $10^6$ words};
+\end{tikzpicture}

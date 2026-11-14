@@ -1,0 +1,28 @@
+start: l o w _   l o w e r _   n e w e s t _   w i d e s t _
+merge 1: 't' + '_' -> 't_'  (appears 9 times)   l o w _   l o w e r _   n e w e s t_   w i d e s t_
+merge 2: 's' + 't_' -> 'st_'  (appears 9 times)   l o w _   l o w e r _   n e w e st_   w i d e st_
+merge 3: 'e' + 'st_' -> 'est_'  (appears 9 times)   l o w _   l o w e r _   n e w est_   w i d est_
+merge 4: 'o' + 'w' -> 'ow'  (appears 7 times)   l ow _   l ow e r _   n e w est_   w i d est_
+merge 5: 'l' + 'ow' -> 'low'  (appears 7 times)   low _   low e r _   n e w est_   w i d est_
+merge 6: 'w' + 'est_' -> 'west_'  (appears 6 times)   low _   low e r _   n e west_   w i d est_
+merge 7: 'n' + 'e' -> 'ne'  (appears 6 times)   low _   low e r _   ne west_   w i d est_
+merge 8: 'ne' + 'west_' -> 'newest_'  (appears 6 times)   low _   low e r _   newest_   w i d est_
+lowest -> ['low', 'est_']
+newer -> ['ne', 'w', 'e', 'r', '_']
+PTB: 842501 words, 9998 different words, 47 different characters
+1000 merges learned in 73 s;  vocabulary = 47 characters + 1000 merged tokens = 1047 tokens
+first 10 merges: ['e+_', 's+_', 't+h', 'i+n', 't+_', 'd+_', 'e+r', 'a+n', 'o+n', 'th+e_']
+tokens per word in the corpus: 5.63 as characters, 1.76 after 1000 merges
+words that became a single token: 327 of 9998
+the            (appears  50770 times) -> the_
+company        (appears   2680 times) -> company_
+million        (appears   4627 times) -> million_
+government     (appears    885 times) -> government_
+international  (appears    467 times) -> international_
+toyota         (appears     30 times) -> to y o t a_
+galvanized     (appears     11 times) -> g al v an iz ed_
+weyerhaeuser   (appears     12 times) -> we y er ha eu s er_
+unbelievable   (not in the corpus: True) -> un be li ev able_
+tokenization   (not in the corpus: True) -> to k en iz ation_
+chatgpt        (not in the corpus: True) -> ch at g pt_
+transformers   (not in the corpus: True) -> tran s form ers_

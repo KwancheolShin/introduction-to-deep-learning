@@ -1,0 +1,21 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+% the corpus as one long strip
+\draw[fill=black!6] (0,0) rectangle (135,6);
+\foreach \x in {45,90} \draw[thick,hotc] (\x,-1.5) -- (\x,7.5);
+\node[lab,anchor=west] at (0,10) {corpus: one long sequence of word IDs};
+\node[lab,text=hotc!80!black] at (45,-5) {cut}; \node[lab,text=hotc!80!black] at (90,-5) {cut};
+% B rows, with one minibatch and the next one marked in every row
+\foreach \r in {1,2,3} {
+  \pgfmathsetmacro{\yy}{-12-\r*8}
+  \draw[fill=black!6] (0,\yy) rectangle (135,\yy+6);
+  \draw[fill=tokc!35] (30,\yy) rectangle (50,\yy+6);
+  \draw[fill=tokc!12] (50,\yy) rectangle (70,\yy+6);
+  \node[lab,anchor=east] at (-2,\yy+3) {row \r};
+  \draw[ar=grnc,line width=1.2pt] (46,\yy+3) -- (54,\yy+3);
+}
+\node[lab] at (40,-10.5) {minibatch $(B,T)$};
+\node[lab] at (61,-10.5) {next};
+\draw[decorate,decoration={brace,amplitude=4pt,mirror}] (30,-38) -- (50,-38) node[midway,below=2mm,lab] {$T$ words};
+\node[lab,anchor=north east,align=left] at (135,-40) {{\color{grnc}$\boldsymbol{\rightarrow}$}\ \ the hidden state at the end of a minibatch is\\\phantom{$\boldsymbol{\rightarrow}$}\ \ the starting state of the next one (one per row)};
+\node[lab,anchor=east] at (-2,-9) {$B$ rows};
+\end{tikzpicture}

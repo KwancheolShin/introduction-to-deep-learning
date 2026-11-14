@@ -1,0 +1,20 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=13mm,minimum height=7mm,font=\small}}
+\foreach \w [count=\i] in {I,am,a,cat} {
+  \pgfmathsetmacro{\xx}{(\i-1)*26}
+  \node[tok] (x\i) at (\xx,0) {\w};
+  \node[L=tokc] (f\i) at (\xx-4,14) {LSTM};
+  \node[L=grnc] (b\i) at (\xx+4,28) {LSTM};
+  \draw[ar] ([xshift=-4mm]x\i.north) -- (f\i.south);
+  \draw[ar] ([xshift=4mm]x\i.north) -- ([xshift=4mm]x\i.north |- b\i.south);
+  % joined hidden state
+  \foreach \k in {0,1} \draw[fill=tokc!30] (\xx-8+\k*4,40) rectangle ++(4,4);
+  \foreach \k in {2,3} \draw[fill=grnc!30] (\xx-8+\k*4,40) rectangle ++(4,4);
+  \draw[tokc!80!black,->] ([xshift=-2mm]f\i.north) -- (\xx-6,39.5);
+  \draw[grnc!70!black,->] (b\i.north) -- (\xx+4,39.5);
+}
+\foreach \a/\b in {1/2,2/3,3/4} { \draw[ar=tokc] (f\a) -- (f\b); \draw[ar=grnc] (b\b) -- (b\a); }
+\node[lab,anchor=west,text=tokc!80!black] at (92,14) {reads left $\to$ right};
+\node[lab,anchor=west,text=grnc!70!black] at (92,28) {reads right $\to$ left};
+\node[lab,anchor=west] at (92,42) {row of $\vect{hs}$: both joined};
+\end{tikzpicture}

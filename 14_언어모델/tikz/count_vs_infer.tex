@@ -1,0 +1,15 @@
+\begin{tikzpicture}[node distance=8mm]
+\node[lay=black,minimum width=30mm,minimum height=12mm] (d1) {whole corpus\\(all at once)};
+\node[lay=tokc,right=of d1] (c1) {count\\$V\times V$ matrix};
+\node[lay=hotc,right=of c1] (s1) {SVD};
+\node[lab,right=5mm of s1] (v1) {word\\vectors};
+\draw[ar] (d1) -- (c1); \draw[ar] (c1) -- (s1); \draw[ar] (s1) -- (v1);
+\node[lab,anchor=east,font=\bfseries\small] at ([xshift=-4mm]d1.west) {count-based};
+\node[lay=black,minimum width=30mm,minimum height=12mm,below=8mm of d1] (d2) {minibatch\\(a little at a time)};
+\node[lay=grnc,right=of d2] (n2) {neural network\\(predict a word)};
+\node[lay=hotc,right=of n2] (u2) {update\\weights};
+\node[lab,right=5mm of u2] (v2) {weights =\\word vectors};
+\draw[ar] (d2) -- (n2); \draw[ar] (n2) -- (u2); \draw[ar] (u2) -- (v2);
+\draw[ar,dashed] (u2.south) -- ++(0,-5mm) -| node[pos=0.25,below,lab] {repeat with the next minibatch} (d2.south);
+\node[lab,anchor=east,font=\bfseries\small] at ([xshift=-4mm]d2.west) {inference-based};
+\end{tikzpicture}

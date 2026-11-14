@@ -1,0 +1,15 @@
+\begin{tikzpicture}[x=6mm,y=6.5mm]
+\def\cellrow#1#2#3{% x0, y, string as list
+  \foreach \c [count=\k] in {#3} {
+    \draw (#1+\k-1,#2) rectangle ++(1,1);
+    \node[font=\ttfamily] at (#1+\k-0.5,#2+0.5) {\c};
+  }}
+\node[lab] at (3.5,1.6) {question (7 characters)};
+\node[lab] at (11.5,1.6) {answer (5 characters)};
+\cellrow{0}{0}{5,7,+,5,{},{},{}}
+\cellrow{0}{-1}{6,2,8,+,5,2,1}
+\cellrow{0}{-2}{2,2,0,+,8,{},{}}
+\cellrow{9}{0}{\_,6,2,{},{}}
+\cellrow{9}{-1}{\_,1,1,4,9}
+\cellrow{9}{-2}{\_,2,2,8,{}}
+\end{tikzpicture}

@@ -1,0 +1,9 @@
+\begin{tikzpicture}[x=10mm,y=10mm]
+\fill (0,0) circle (2pt) node[below left,font=\ttfamily] {man};
+\fill (2.2,1.6) circle (2pt) node[above left,font=\ttfamily] {woman};
+\fill (3,-0.8) circle (2pt) node[below,font=\ttfamily] {king};
+\draw[ar=tokc,line width=1.3pt] (0,0) -- node[above left,lab,text=tokc!80!black] {$\vect v_{\texttt{woman}}-\vect v_{\texttt{man}}$} (2.2,1.6);
+\draw[ar=tokc,line width=1.3pt,dashed] (3,-0.8) -- (5.2,0.8);
+\draw[hotc,thick] (5.2,0.8) circle (5pt); \node[right=2mm,font=\ttfamily,text=hotc!80!black] at (5.2,0.8) {queen?};
+\node[lab,anchor=west,text width=55mm] at (5.8,-0.4) {$\vect v_{\texttt{king}}+(\vect v_{\texttt{woman}}-\vect v_{\texttt{man}})$: find the word whose vector is closest};
+\end{tikzpicture}

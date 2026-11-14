@@ -1,0 +1,16 @@
+{\renewcommand{\arraystretch}{1.25}%
+\newcommand{\Tg}[1]{\colorbox{hotc!25}{\strut#1}}%
+\newcommand{\Cx}[1]{\colorbox{attc!25}{\strut#1}}%
+\setlength{\fboxsep}{1.5pt}%
+\begin{tabular}{@{}l@{\hspace{8mm}}l@{\hspace{8mm}}l@{}}
+\toprule
+corpus (window 1) & context & target \\
+\midrule
+\ttfamily \Cx{you} \Tg{say} \Cx{goodbye} and i say hello . & \ttfamily you, goodbye & \ttfamily say \\
+\ttfamily you \Cx{say} \Tg{goodbye} \Cx{and} i say hello . & \ttfamily say, and & \ttfamily goodbye \\
+\ttfamily you say \Cx{goodbye} \Tg{and} \Cx{i} say hello . & \ttfamily goodbye, i & \ttfamily and \\
+\ttfamily you say goodbye \Cx{and} \Tg{i} \Cx{say} hello . & \ttfamily and, say & \ttfamily i \\
+\ttfamily you say goodbye and \Cx{i} \Tg{say} \Cx{hello} . & \ttfamily i, hello & \ttfamily say \\
+\ttfamily you say goodbye and i \Cx{say} \Tg{hello} \Cx{.} & \ttfamily say, . & \ttfamily hello \\
+\bottomrule
+\end{tabular}}

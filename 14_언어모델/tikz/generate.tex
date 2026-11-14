@@ -1,0 +1,22 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=19mm,minimum height=7mm}}
+\foreach \w/\o/\hot/\probs [count=\i] in {i/say/2/{0.05,0.5,0.1,0.15,0.05,0.1,0.05}, say/hello/6/{0.05,0.02,0.4,0.08,0.05,0.35,0.05}} {
+  \pgfmathsetmacro{\xx}{(\i-1)*62}
+  \node[tok] (w\i) at (\xx,0) {\w};
+  \node[L=tokc] (e\i) at (\xx,12) {Embedding};
+  \node[L=grnc] (r\i) at (\xx,24) {LSTM};
+  \node[L=black] (a\i) at (\xx,36) {Affine + Softmax};
+  \draw[ar] (w\i) -- (e\i); \draw[ar] (e\i) -- (r\i); \draw[ar] (r\i) -- (a\i);
+  \foreach \p [count=\k] in \probs {
+    \ifnum\k=\hot\relax \def\cc{hotc}\else \def\cc{black!35}\fi
+    \fill[\cc] (\xx-11.5+3*\k,46) rectangle ++(2,{22*\p});
+  }
+  \draw (\xx-10,46) -- (\xx+12,46);
+  \draw[ar] (a\i) -- (\xx,45.5);
+  \node[tok=hotc] (o\i) at (\xx+32,51) {\o};
+  \draw[ar=hotc,thick] (\xx+13,51) -- node[above,lab] {sample} (o\i);
+}
+\draw[ar=hotc,thick] (o1.south) -- (32,-8) -- (62,-8) -- (w2.south);
+\draw[ar=grnc,thick] (r1) -- node[above,lab,text=grnc!70!black,pos=0.72] {state} (r2);
+\node[lab] at (31,62) {probabilities of the next word (the red bar is the word that was drawn)};
+\end{tikzpicture}

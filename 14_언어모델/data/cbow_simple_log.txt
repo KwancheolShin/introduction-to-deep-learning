@@ -1,0 +1,22 @@
+context (you, goodbye) -> target say
+context (say, and) -> target goodbye
+context (goodbye, i) -> target and
+context (and, say) -> target i
+context (i, hello) -> target say
+context (say, .) -> target hello
+loss: first epoch 1.970 (log V = 1.946), epoch 1000 0.350, last epoch 0.235;  lowest possible = 2 log 2 / 6 = 0.231
+P(? | you, goodbye): {'you': 0.0, 'say': 0.997, 'goodbye': 0.0, 'and': 0.003, 'i': 0.0, 'hello': 0.0, '.': 0.0}
+context (you    , goodbye) -> P(say    ) = 0.997
+context (say    , and    ) -> P(goodbye) = 0.498
+context (goodbye, i      ) -> P(and    ) = 0.994
+context (and    , say    ) -> P(i      ) = 0.499
+context (i      , hello  ) -> P(say    ) = 0.997
+context (say    , .      ) -> P(hello  ) = 0.997
+you      [-1.752  1.838  2.3  ]
+say      [-0.007 -2.152  0.639]
+goodbye  [-1.55   1.603 -0.934]
+and      [-2.017 -2.063 -1.433]
+i        [-1.598  1.568 -0.973]
+hello    [-1.737  1.212  2.307]
+.        [ 1.985 -1.063  2.011]
+cos(goodbye, i) = 1.000,  cos(goodbye, say) = -0.744

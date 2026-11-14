@@ -1,0 +1,10 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\node[lay=attc] (h) at (0,12) {$\vect h$: average of the\\context vectors};
+\node[lay=hotc] (w) at (0,-12) {$\vect w^{\text{out}}_{\texttt{say}}$: the row of\\$W_{\text{out}}$ for \texttt{say}};
+\node[op,minimum size=8mm,font=\large] (dot) at (38,0) {$\cdot$};
+\node[lay=black] (sig) at (72,0) {sigmoid $\sigma$};
+\node[lab,anchor=west] (p) at (92,0) {$P(\text{answer is \texttt{say}})$};
+\draw[ar] (h.east) -| (dot.north); \draw[ar] (w.east) -| (dot.south);
+\draw[ar] (dot) -- node[above,lab] {score} (sig); \draw[ar] (sig) -- (p);
+\node[lab] at (62,-22) {one dot product, instead of $V$ scores and a softmax over $V$ words};
+\end{tikzpicture}

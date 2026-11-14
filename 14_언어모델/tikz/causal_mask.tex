@@ -1,0 +1,13 @@
+\begin{tikzpicture}[x=9mm,y=9mm]
+\def\ws{you,say,goodbye,and}
+\foreach \w [count=\j] in \ws \node[font=\ttfamily\small,rotate=35,anchor=south west] at (\j-0.7,0.1) {\w};
+\foreach \w [count=\i] in \ws {
+  \node[font=\ttfamily\small,anchor=east] at (-0.2,-\i+0.5) {\w};
+  \foreach \j in {1,...,4} {
+    \ifnum\j>\i \draw[fill=black!12] (\j-1,-\i) rectangle (\j,-\i+1); \node[text=black!45] at (\j-0.5,-\i+0.5) {$-\infty$};
+    \else \draw[fill=attc!30] (\j-1,-\i) rectangle (\j,-\i+1); \node at (\j-0.5,-\i+0.5) {$s_{\i\j}$}; \fi
+  }
+}
+\node[lab,anchor=west,align=left] at (4.6,-0.9) {row $i$: the scores of position $i$\\column $j$: the position it looks at};
+\node[lab,anchor=west,align=left] at (4.6,-2.6) {orange: itself and earlier words ($j\le i$)\\gray: later words, weight $0$ after the softmax};
+\end{tikzpicture}

@@ -1,0 +1,46 @@
+step 1, averaging weights:
+ [[1.     0.     0.    ]
+ [0.5    0.5    0.    ]
+ [0.3333 0.3333 0.3333]]
+step 1, outputs A X:
+ [[0.     0.    ]
+ [0.5    0.    ]
+ [0.3333 0.3333]]
+step 2, similarity scores:
+ [[  0. -inf -inf]
+ [  0.   1. -inf]
+ [  0.   0.   1.]]
+step 2, weights:
+ [[1.     0.     0.    ]
+ [0.2689 0.7311 0.    ]
+ [0.2119 0.2119 0.5761]]
+step 3, Q:
+ [[0. 0.]
+ [0. 0.]
+ [2. 0.]]
+step 3, scores Q K^T:
+ [[  0. -inf -inf]
+ [  0.   0. -inf]
+ [  0.   2.   0.]]
+step 3, weights:
+ [[1.     0.     0.    ]
+ [0.5    0.5    0.    ]
+ [0.1065 0.787  0.1065]]
+step 4, outputs A V:
+ [[0.     0.    ]
+ [0.5    0.    ]
+ [0.787  0.1065]]
+output at 'sat':  'the cat sat' [0.787  0.1065]   'cat the sat' [0.787  0.1065]
+inputs with positions, 'the cat sat':
+ [[ 0.5  0. ]
+ [ 1.   0.5]
+ [-0.5  1. ]]
+inputs with positions, 'cat the sat':
+ [[ 1.5  0. ]
+ [ 0.   0.5]
+ [-0.5  1. ]]
+output at 'sat' with positions:  'the cat sat' [0.8176 0.3878]   'cat the sat' [1.3958 0.0405]
+temperature 0.5: p = [0.8668 0.1173 0.0159]
+temperature 1.0: p = [0.6652 0.2447 0.09  ]
+temperature 2.0: p = [0.5065 0.3072 0.1863]
+x = [1. 2. 3. 6.], mean 3.0, variance 3.5, LayerNorm(x) = [-1.069  -0.5345  0.      1.6036]

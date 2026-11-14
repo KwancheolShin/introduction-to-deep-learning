@@ -1,0 +1,9 @@
+\begin{tikzpicture}[node distance=6mm]
+\matrix[row sep=3mm,column sep=6mm] (m) {
+  \node[lab,font=\bfseries\small] {}; & \node[lab] {word}; & \node[lab] {score}; & \node[lab] {$\sigma(\text{score})$}; & \node[lab] {target}; \\
+  \node[lab,text=grnc!80!black,font=\bfseries\small] {positive}; & \node[tok=grnc] {say}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{say}}$}; & \node[lab] {$\to$ close to $1$}; & \node[lab] {$1$}; \\
+  \node[lab,text=hotc!80!black,font=\bfseries\small] {negative}; & \node[tok=hotc] {you}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{you}}$}; & \node[lab] {$\to$ close to $0$}; & \node[lab] {$0$}; \\
+  \node[lab,text=hotc!80!black,font=\bfseries\small] {negative}; & \node[tok=hotc] {hello}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{hello}}$}; & \node[lab] {$\to$ close to $0$}; & \node[lab] {$0$}; \\
+};
+\node[lab,below=2mm of m,text width=100mm] {context (\texttt{you}, \texttt{goodbye}), answer \texttt{say}; the negatives are drawn at random};
+\end{tikzpicture}

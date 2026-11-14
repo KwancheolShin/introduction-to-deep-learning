@@ -1,0 +1,35 @@
+corpus    : [0 1 2 3 4 1 5 6]
+id_to_word: {0: 'you', 1: 'say', 2: 'goodbye', 3: 'and', 4: 'i', 5: 'hello', 6: '.'}
+[[0 1 0 0 0 0 0]
+ [1 0 1 0 1 1 0]
+ [0 1 0 1 0 0 0]
+ [0 0 1 0 1 0 0]
+ [0 1 0 1 0 0 0]
+ [0 1 0 0 0 0 1]
+ [0 0 0 0 0 1 0]]
+cos(you, i)       = 0.7071
+cos(you, goodbye) = 0.7071
+most similar to 'you': [('goodbye', 0.7071), ('hello', 0.7071), ('i', 0.7071), ('and', 0.0), ('say', 0.0)]
+[[0.    1.807 0.    0.    0.    0.    0.   ]
+ [1.807 0.    0.807 0.    0.807 0.807 0.   ]
+ [0.    0.807 0.    1.807 0.    0.    0.   ]
+ [0.    0.    1.807 0.    1.807 0.    0.   ]
+ [0.    0.807 0.    1.807 0.    0.    0.   ]
+ [0.    0.807 0.    0.    0.    0.    2.807]
+ [0.    0.    0.    0.    0.    2.807 0.   ]]
+PMI check: C(say, goodbye) = 1.0 , C(say) = 4.0 , C(goodbye) = 2.0 , N = 14.0
+singular values: [3.168 3.168 2.703 2.703 1.514 1.514 0.   ]
+you      [-1.08 -0.  ]
+say      [ 0.    -1.893]
+goodbye  [-1.382 -0.   ]
+and      [-0.    -1.577]
+i        [-1.382 -0.   ]
+hello    [-2.247 -0.   ]
+.        [ 0.    -1.991]
+how much of M is kept by 2 of the 7 dimensions: 0.511
+PTB: 929589 words, 10000 distinct words
+co-occurrence, PPMI, SVD: 10 s
+you -> [('i', 0.825), ('we', 0.815), ('do', 0.804), ("'d", 0.734), ('something', 0.729)]
+year -> [('month', 0.816), ('last', 0.779), ('quarter', 0.77), ('earlier', 0.76), ('third', 0.756)]
+car -> [('auto', 0.745), ('luxury', 0.689), ('truck', 0.661), ('cars', 0.642), ('corsica', 0.636)]
+toyota -> [('motor', 0.799), ('honda', 0.699), ('mazda', 0.69), ('motors', 0.686), ('nissan', 0.677)]

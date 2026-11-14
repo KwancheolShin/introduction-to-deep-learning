@@ -1,0 +1,14 @@
+\begin{tikzpicture}[x=6mm,y=6.5mm]
+\def\cellrow#1#2#3{%
+  \foreach \c [count=\k] in {#3} {
+    \draw (#1+\k-1,#2) rectangle ++(1,1);
+    \node[font=\ttfamily] at (#1+\k-0.5,#2+0.5) {\c};
+  }}
+\cellrow{0}{0}{5,7,+,5,{},{},{}}
+\cellrow{0}{-1}{6,2,8,+,5,2,1}
+\cellrow{0}{-2}{2,2,0,+,8,{},{}}
+\draw[ar,line width=1.5pt] (7.6,-0.5) -- node[above,lab] {reverse} (10.4,-0.5);
+\cellrow{11}{0}{{},{},{},5,+,7,5}
+\cellrow{11}{-1}{1,2,5,+,8,2,6}
+\cellrow{11}{-2}{{},{},8,+,0,2,2}
+\end{tikzpicture}

@@ -1,0 +1,41 @@
+device: cuda
+SEPTEMBER 16, 2017               -> 2017-09-16
+September 17, 2016               -> 2016-09-17
+August 23, 1978                  -> 1978-08-23
+4/21/14                          -> 2014-04-21
+6/14/95                          -> 1995-06-14
+test dates that are also in the training set: 0
+59 characters, question length 29, answer length 10
+peeky: epoch 1, accuracy 0.006
+peeky: epoch 2, accuracy 0.568
+peeky: epoch 3, accuracy 0.981
+peeky: epoch 4, accuracy 0.999
+peeky: epoch 5, accuracy 1.000
+peeky: epoch 6, accuracy 1.000
+peeky: epoch 7, accuracy 1.000
+peeky: epoch 8, accuracy 1.000
+peeky: epoch 9, accuracy 1.000
+peeky: epoch 10, accuracy 1.000
+peeky: 93 s
+attention: epoch 1, accuracy 0.750
+attention: epoch 2, accuracy 0.985
+attention: epoch 3, accuracy 0.996
+attention: epoch 4, accuracy 0.997
+attention: epoch 5, accuracy 0.998
+attention: epoch 6, accuracy 0.997
+attention: epoch 7, accuracy 0.997
+attention: epoch 8, accuracy 0.997
+attention: epoch 9, accuracy 0.999
+attention: epoch 10, accuracy 0.999
+attention: 73 s
+question: THURSDAY, JULY 1, 1993  answer: 1993-07-01  true: 1993-07-01
+  output '1' looks most at input position 18 '1' (weight 1.00);  weight on the padding after the question: 0.00
+  output '9' looks most at input position 19 '9' (weight 0.98);  weight on the padding after the question: 0.00
+  output '9' looks most at input position 20 '9' (weight 0.83);  weight on the padding after the question: 0.00
+  output '3' looks most at input position 21 '3' (weight 1.00);  weight on the padding after the question: 0.00
+  output '-' looks most at input position  5 'D' (weight 0.00);  weight on the padding after the question: 0.99
+  output '0' looks most at input position  6 'A' (weight 0.37);  weight on the padding after the question: 0.57
+  output '7' looks most at input position 11 'U' (weight 1.00);  weight on the padding after the question: 0.00
+  output '-' looks most at input position  8 ',' (weight 0.03);  weight on the padding after the question: 0.96
+  output '0' looks most at input position 14 ' ' (weight 1.00);  weight on the padding after the question: 0.00
+  output '1' looks most at input position 15 '1' (weight 1.00);  weight on the padding after the question: -0.00

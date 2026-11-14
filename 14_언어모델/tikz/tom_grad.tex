@@ -1,0 +1,23 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\foreach \w [count=\i] in {Tom,was,watching,$\cdots$,to} {
+  \pgfmathsetmacro{\xx}{(\i-1)*26}
+  \ifnum\i=4 \node at (\xx,13) {$\cdots$}; \else
+  \node[tok] (w\i) at (\xx,0) {\w};
+  \node[lay=grnc,minimum width=16mm,minimum height=8mm] (r\i) at (\xx,13) {RNN};
+  \draw[ar] (w\i) -- (r\i); \fi
+}
+\draw[ar] ([yshift=2mm]r1.east) -- ([yshift=2mm]r2.west); \draw[ar] ([yshift=2mm]r2.east) -- ([yshift=2mm]r3.west);
+\draw[ar] ([yshift=2mm]r3.east) -- (69,15); \draw[ar] (87,15) -- ([yshift=2mm]r5.west);
+\node[lay=attc,minimum width=20mm,minimum height=8mm] (s) at (104,31) {Softmax + loss};
+\draw[ar] ([xshift=-3mm]r5.north) -- ([xshift=-3mm]s.south);
+\node[tok=grnc] (ans) at (104,45) {Tom};
+\draw[ar=grnc,dashed] (ans) -- (s); \node[lab,right=1mm of ans] {answer};
+% backward path
+\draw[ar=hotc,line width=1.4pt] ([xshift=3mm]s.south) -- ([xshift=3mm]r5.north);
+\draw[ar=hotc,line width=1.4pt] ([yshift=-2mm]r5.west) -- (87,11);
+\draw[hotc,line width=1.4pt,dashed] (87,11) -- (69,11);
+\draw[ar=hotc,line width=1.4pt] (69,11) -- ([yshift=-2mm]r3.east);
+\draw[ar=hotc,line width=1.4pt] ([yshift=-2mm]r3.west) -- ([yshift=-2mm]r2.east);
+\draw[ar=hotc,line width=1.4pt] ([yshift=-2mm]r2.west) -- ([yshift=-2mm]r1.east);
+\node[lab,text=hotc!80!black] at (52,-9) {backward (red): the gradient has to travel all the way back to \texttt{Tom}};
+\end{tikzpicture}

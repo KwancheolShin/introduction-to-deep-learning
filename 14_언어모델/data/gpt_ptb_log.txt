@@ -1,0 +1,23 @@
+device: cuda
+2259000 parameters: {'word embedding': 1000000, 'position embedding': 6400, 'one block': 121300, 'output layer': 1010000}
+gpt: epoch 1, valid perplexity 286.7  (26 s)
+gpt: epoch 2, valid perplexity 219.7  (18 s)
+gpt: epoch 3, valid perplexity 191.1  (23 s)
+gpt: epoch 4, valid perplexity 174.8  (21 s)
+gpt: epoch 5, valid perplexity 166.0  (23 s)
+gpt: epoch 6, valid perplexity 160.4  (25 s)
+gpt: epoch 7, valid perplexity 156.9  (21 s)
+gpt: epoch 8, valid perplexity 154.4  (20 s)
+gpt: epoch 9, valid perplexity 152.4  (22 s)
+gpt: epoch 10, valid perplexity 151.3  (22 s)
+gpt: test perplexity 139.7,  22.1 s per epoch,  726 steps per epoch
+model  parameters best valid   valid    test  s/epoch
+RNN       2030200      171.1   172.8   161.9     13.6
+LSTM      2090800      156.1   156.1   144.3     14.3
+GPT       2259000      151.3   151.3   139.7     22.1
+GPT, temperature 0.5, seed 1: the company said it expects to report its net income to $ N million or $ N a share from $ N million or $ N a share a
+GPT, temperature 0.5, seed 2: the company said it expects to report the full fiscal N revenue of $ N million to $ N million from $ N million / the company said its
+GPT, temperature 1.0, seed 1: the company said it expects to owe its N N stake in operation the division until N million shares economists issued the prices of navigation mixte markets / it
+GPT, temperature 1.0, seed 2: the company said it expects to drop the full fiscal federal conduct a merger of c$ N million while will rise N N to N N including N million
+GPT, temperature 1.5, seed 1: the company said it unsuccessful saab 's jaguar its <unk> service copyright scale profitability division until late tuesday previously economists issued the prices tumbling since osha markets officially bounce
+GPT, temperature 1.5, seed 2: the company said it expects more accrued higher somewhere / federal conduct a merger warning bullets to ownership of drugs however fannie losses widened from free tuesday found our

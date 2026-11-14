@@ -1,0 +1,10 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\node[tok=attc] (a1) at (0,8) {say}; \node[tok=hotc,minimum width=10mm] (a2) at (15,8) {?}; \node[tok=attc] (a3) at (30,8) {and};
+\node[tok=attc] (b1) at (0,-8) {and}; \node[tok=hotc,minimum width=10mm] (b2) at (15,-8) {?}; \node[tok=attc] (b3) at (30,-8) {say};
+\node[lab,anchor=east] at (-8,8) {answer: \texttt{goodbye}};
+\node[lab,anchor=east] at (-8,-8) {answer: \texttt{i}};
+\node[lay=attc,minimum width=46mm] (h) at (74,0) {$\vect h=\tfrac12(\vect v_{\texttt{say}}+\vect v_{\texttt{and}})$\\the same vector for both};
+\draw[ar] (38,8) -- ([yshift=2.5mm]h.west); \draw[ar] (38,-8) -- ([yshift=-2.5mm]h.west);
+\node[lab,anchor=north] (o) at (74,-17) {the same output probabilities:\\at best $P(\texttt{goodbye})=P(\texttt{i})=\tfrac12$};
+\draw[ar] (h) -- (o);
+\end{tikzpicture}

@@ -1,0 +1,14 @@
+\begin{tikzpicture}[node distance=2mm]
+\tikzset{ctx/.style={tok=attc}, ctr/.style={tok=hotc,font=\ttfamily\bfseries}}
+\node[ctx] (w1) {you};
+\node[ctx,right=of w1] (w2) {say};
+\node[ctr,right=of w2] (w3) {goodbye};
+\node[ctx,right=of w3] (w4) {and};
+\node[ctx,right=of w4] (w5) {i};
+\node[tok,right=of w5] (w6) {say};
+\node[tok,right=of w6] (w7) {hello};
+\node[tok,right=of w7] (w8) {.};
+\draw[decorate,decoration={brace,amplitude=5pt,mirror}] ([yshift=-1.5mm]w1.south west) -- ([yshift=-1.5mm]w2.south east) node[midway,below=2mm,lab] {left 2 words};
+\draw[decorate,decoration={brace,amplitude=5pt,mirror}] ([yshift=-1.5mm]w4.south west) -- ([yshift=-1.5mm]w5.south east) node[midway,below=2mm,lab] {right 2 words};
+\node[above=1.5mm of w3,lab,text=hotc!80!black] {center word};
+\end{tikzpicture}

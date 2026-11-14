@@ -1,0 +1,23 @@
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+% one-hot row vector c (1 x 7), the 1 at position 2 (goodbye)
+\foreach \v [count=\i] in {0,0,1,0,0,0,0} {
+  \ifnum\v=1 \fill[hotc!35] (\i-1,0) rectangle (\i,1); \fi
+  \draw (\i-1,0) rectangle (\i,1); \node at (\i-0.5,0.5) {\v};
+}
+\node[lab] at (3.5,1.7) {$\vect c$: one-hot vector of \texttt{goodbye}};
+\node at (8,0.5) {\Large $\times$};
+% W (7 x 3)
+\foreach \r [count=\i] in {you,say,goodbye,and,i,hello,.} {
+  \pgfmathsetmacro{\yy}{4-\i}
+  \ifnum\i=3 \fill[hotc!35] (9,\yy) rectangle (12,\yy+1); \fi
+  \foreach \k in {0,1,2} { \draw (9+\k,\yy) rectangle (10+\k,\yy+1); }
+  \node[anchor=west,font=\ttfamily] at (12.2,\yy+0.5) {\r};
+}
+\node[lab] at (10.5,4.7) {$W$ ($V\times H=7\times3$)};
+\node at (16.2,0.5) {\Large $=$};
+% result h (1 x 3)
+\fill[hotc!35] (17.5,0) rectangle (20.5,1);
+\foreach \k in {0,1,2} { \draw (17.5+\k,0) rectangle (18.5+\k,1); }
+\node[lab] at (19,-0.8) {row of \texttt{goodbye}};
+\draw[ar=hotc,dashed] (15.2,1.5) to[out=0,in=90] (19,1.1);
+\end{tikzpicture}

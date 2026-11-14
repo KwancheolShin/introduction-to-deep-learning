@@ -1,0 +1,17 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\foreach \t/\lbl [count=\i] in {1/t-1,2/t,3/t+1} {
+  \pgfmathsetmacro{\xx}{(\i-1)*44}
+  \draw[fill=black!3,rounded corners=3pt] (\xx,0) rectangle (\xx+30,22);
+  \node[op] (m\i) at (\xx+8,17) {$\times$};
+  \node[op] (p\i) at (\xx+20,17) {$+$};
+  \node[lab] (f\i) at (\xx+8,5) {$\vect f_{\lbl}$};
+  \draw[ar] (f\i) -- (m\i);
+  \draw[ar] (\xx+20,5) node[below,lab] {$\vect i\odot\vect g$} -- (p\i);
+  \draw[attc,line width=1.6pt] (m\i) -- (p\i);
+}
+\draw[ar=attc,line width=1.6pt] (-12,17) -- (m1);
+\draw[ar=attc,line width=1.6pt] (p1) -- (m2); \draw[ar=attc,line width=1.6pt] (p2) -- (m3);
+\draw[ar=attc,line width=1.6pt] (p3) -- (122,17) node[right,text=black] {$\vect c$};
+% backward
+\draw[ar=hotc,line width=1.2pt] (120,27) -- node[above,lab,text=hotc!80!black] {gradient: only $+$ and $\odot\,\vect f$ on the way back} (-10,27);
+\end{tikzpicture}

@@ -1,0 +1,10 @@
+\begin{tikzpicture}[node distance=12mm]
+\node[lay=tokc,minimum width=28mm,minimum height=11mm] (e) {Encoder};
+\node[lay=grnc,minimum width=28mm,minimum height=11mm,right=18mm of e] (d) {Decoder};
+\draw[ar,line width=1.4pt] (e) -- node[above,lab] {$\vect h$} node[below,lab] {fixed size} (d);
+\node[below=6mm of e,font=\ttfamily] (in) {I am a cat};
+\node[above=6mm of d,font=\ttfamily] (out) {Je suis un chat};
+\draw[ar] (in) -- (e); \draw[ar] (d) -- (out);
+\node[lab,below=1mm of in] {input sentence (English)};
+\node[lab,above=1mm of out] {output sentence (French)};
+\end{tikzpicture}

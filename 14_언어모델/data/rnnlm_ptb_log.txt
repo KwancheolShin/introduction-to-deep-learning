@@ -1,0 +1,32 @@
+device: cuda
+{'train': 929589, 'valid': 73760, 'test': 82430}  V = 10000
+train: (20, 46479)  steps per epoch: 1328
+rnn: epoch 1, valid perplexity 265.6  (16 s)
+rnn: epoch 2, valid perplexity 212.7  (13 s)
+rnn: epoch 3, valid perplexity 192.1  (12 s)
+rnn: epoch 4, valid perplexity 181.7  (13 s)
+rnn: epoch 5, valid perplexity 177.0  (12 s)
+rnn: epoch 6, valid perplexity 173.2  (13 s)
+rnn: epoch 7, valid perplexity 171.2  (17 s)
+rnn: epoch 8, valid perplexity 171.1  (12 s)
+rnn: epoch 9, valid perplexity 171.9  (17 s)
+rnn: epoch 10, valid perplexity 172.8  (13 s)
+rnn: test perplexity 161.9,  2030200 parameters,  13.6 s per epoch
+lstm: epoch 1, valid perplexity 299.7  (14 s)
+lstm: epoch 2, valid perplexity 225.0  (14 s)
+lstm: epoch 3, valid perplexity 195.3  (15 s)
+lstm: epoch 4, valid perplexity 179.0  (19 s)
+lstm: epoch 5, valid perplexity 169.3  (13 s)
+lstm: epoch 6, valid perplexity 163.4  (16 s)
+lstm: epoch 7, valid perplexity 159.4  (12 s)
+lstm: epoch 8, valid perplexity 157.2  (12 s)
+lstm: epoch 9, valid perplexity 156.2  (16 s)
+lstm: epoch 10, valid perplexity 156.1  (12 s)
+lstm: test perplexity 144.3,  2090800 parameters,  14.3 s per epoch
+LSTM, temperature 0.5, seed 1: the company said it is very <unk> / the <unk> of the <unk> <unk> <unk> <unk> <unk> <unk> <unk> <unk> <unk> and <unk> <unk> <unk> and <unk> <unk> /
+LSTM, temperature 0.5, seed 2: the company said it expects to be sold / the federal reserve bank said that the <unk> of the <unk> has been <unk> by the company 's <unk> ratio
+LSTM, temperature 1.0, seed 1: the company said it unsuccessful saab 's oldest sections / ordinarily copyright got the <unk> case / unfortunately he economists issued the prices of one and it would bounce
+LSTM, temperature 1.0, seed 2: the company said it expects margins in connection with the federal bond a year earlier / revenue rose N N to N N before the company 's <unk> fibers
+LSTM, temperature 1.5, seed 1: the company said it unsuccessful saab blue-collar dennis sections / ordinarily copyright got mr. lorin until N million he economists issued comparable prices yesterday since osha concerns that it
+LSTM, temperature 1.5, seed 2: the company said it ends cigarette accrued shy somewhere / federal entertainment a vaccine warning rep. salon brooklyn checks will served a homer move acquired free tuesday because our
+RNN,  temperature 1.0, seed 1: the company said it expects to N N over / ordinarily will float the <unk> in N from N economists / the prices of two osha concerns that it

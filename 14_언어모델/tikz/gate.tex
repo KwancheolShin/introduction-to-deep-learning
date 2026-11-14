@@ -1,0 +1,15 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{cell/.style={draw,minimum width=13mm,minimum height=7.5mm}}
+\node[lab,anchor=east] at (-10,0) {vector};
+\node[lab,anchor=east] at (-10,-13) {gate ($0$ to $1$)};
+\node[lab,anchor=east] at (-10,-26) {vector $\odot$ gate};
+\foreach \v/\g/\r/\sh [count=\i] in {2.0/1.0/2.0/60, -1.5/0.0/0.0/0, 0.8/0.5/0.4/30, 3.0/0.9/2.7/54} {
+  \pgfmathsetmacro{\xx}{(\i-1)*17}
+  \node[cell] (v\i) at (\xx,0) {$\v$};
+  \node[cell,fill=grnc!\sh] (g\i) at (\xx,-13) {$\g$};
+  \node[cell] (r\i) at (\xx,-26) {$\r$};
+  \node at (\xx,-6.5) {$\times$};
+  \node at (\xx,-19.5) {$=$};
+}
+\node[lab,anchor=west,align=left] at (64,-13) {gate $1$: everything passes\\gate $0$: nothing passes\\gate $0.5$: half passes};
+\end{tikzpicture}

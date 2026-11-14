@@ -1,0 +1,15 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+% decoder hidden state h, below the dots
+\foreach \k in {0,...,3} \draw[fill=grnc!30] (22+\k*5,-46) rectangle ++(5,5);
+\node[lab,anchor=west] at (44,-43.5) {decoder state $\vect h$};
+\foreach \w [count=\i] in {I,am,a,cat} {
+  \pgfmathsetmacro{\yy}{-\i*8}
+  \node[font=\ttfamily,anchor=east] at (-2,\yy+2.5) {\w};
+  \foreach \k in {0,...,3} {\pgfmathtruncatemacro{\sh}{20+15*mod(\i+\k,4)}\draw[fill=attc!\sh] (\k*5,\yy) rectangle ++(5,5);}
+  \node[op,minimum size=5.5mm] (d\i) at (32,\yy+2.5) {$\cdot$};
+  \draw[->] (20.5,\yy+2.5) -- (d\i);
+  \draw[->] (d\i) -- (42,\yy+2.5) node[right] {$s_{\i}=\vect h\cdot\vect{hs}_{\i}$};
+}
+\foreach \i in {1,...,4} \draw[->,grnc!70!black] (32,-40.5) to[out=90,in=-90] (d\i.south);
+\node[lab] at (10,3) {$\vect{hs}$};
+\end{tikzpicture}

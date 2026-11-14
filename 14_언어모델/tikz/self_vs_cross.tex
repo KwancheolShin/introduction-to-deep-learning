@@ -1,0 +1,16 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+% cross-attention
+\node[lay=attc] (a1) at (0,0) {Attention};
+\node (q1) at (0,-16) {$\vect h$ (decoder)};
+\node (k1) at (-30,0) {$\vect{hs}$ (encoder)};
+\draw[ar] (q1) -- node[right,lab] {query} (a1); \draw[ar] (k1) -- (a1); \node[lab] at (-30,6) {key, value};
+\draw[ar] (a1) -- (0,14) node[above] {$\vect c$};
+\node[lab,font=\small\bfseries] at (-12,24) {attention between two sentences};
+% self-attention
+\node[lay=attc] (a2) at (70,0) {Attention};
+\node (x2) at (70,-16) {$X$ (one sentence)};
+\draw[ar] (x2) -- node[right,lab] {query} (a2);
+\draw[ar] (x2.west) -- ++(-6,0) |- node[pos=0.25,left,lab] {key, value} (a2.west);
+\draw[ar] (a2) -- (70,14) node[above] {output};
+\node[lab,font=\small\bfseries] at (70,24) {self-attention};
+\end{tikzpicture}

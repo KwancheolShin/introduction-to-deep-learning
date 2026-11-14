@@ -1,0 +1,22 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+% folded
+\node[lay=grnc,minimum width=18mm,minimum height=12mm] (r) at (0,0) {RNN};
+\node (x) at (0,-18) {$\vect x_t$}; \node (h) at (0,18) {$\vect h_t$};
+\draw[ar] (x) -- (r); \draw[ar] (r) -- (h);
+\draw[ar=hotc,thick] (0,11) -- (-17,11) -- (-17,0) -- (r.west);
+\fill[hotc] (0,11) circle (0.7);
+\node[lab,text=hotc!80!black] at (-17,16) {$\vect h_t$ comes back};
+\node[lab,text=hotc!80!black] at (-17,-5) {as $\vect h_{t-1}$};
+\node at (22,0) {\Large $=$};
+% unrolled
+\foreach \lbl [count=\i] in {1,2,3,T} {
+  \pgfmathsetmacro{\xx}{40+(\i-1)*28}
+  \node[lay=grnc,minimum width=16mm,minimum height=10mm] (u\i) at (\xx,0) {RNN};
+  \node (xx\i) at (\xx,-18) {$\vect x_{\lbl}$}; \node (hh\i) at (\xx,18) {$\vect h_{\lbl}$};
+  \draw[ar] (xx\i) -- (u\i); \draw[ar] (u\i) -- (hh\i);
+}
+\draw[ar=hotc,thick] (u1) -- node[above,lab,text=hotc!80!black] {$\vect h_1$} (u2);
+\draw[ar=hotc,thick] (u2) -- node[above,lab,text=hotc!80!black] {$\vect h_2$} (u3);
+\draw[ar=hotc,thick,dashed] (u3) -- node[above,lab] {$\cdots$} (u4);
+\node[lab] at (82,-27) {the same RNN layer (the same weights) at every time step};
+\end{tikzpicture}

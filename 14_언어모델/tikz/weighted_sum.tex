@@ -1,0 +1,16 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\foreach \w/\a [count=\i] in {I/0.05,am/0.05,a/0.1,cat/0.8} {
+  \pgfmathsetmacro{\yy}{-\i*8}
+  \node[font=\ttfamily,anchor=east] at (-2,\yy+2.5) {\w};
+  \foreach \k in {0,...,3} {\pgfmathtruncatemacro{\sh}{20+15*mod(\i+\k,4)}\draw[fill=attc!\sh] (\k*5,\yy) rectangle ++(5,5);}
+  \node at (27,\yy+2.5) {$\times$};
+  \fill[hotc!70] (32,\yy+0.5) rectangle ++({30*\a},4);
+  \node[anchor=west] at ({33+30*\a},\yy+2.5) {$\a$};
+}
+\node[lab] at (10,3) {$\vect{hs}$ (rows)}; \node[lab] at (44,3) {weights $\vect a$};
+\draw[decorate,decoration={brace,amplitude=5pt}] (70,-2) -- (70,-33);
+\node at (80,-17.5) {\Large $=$};
+\foreach \k in {0,...,3} {\pgfmathtruncatemacro{\sh}{20+15*mod(\k,4)}\draw[fill=attc!\sh] (88+\k*5,-20) rectangle ++(5,5);}
+\node[lab,align=center] at (98,-8) {context vector\\$\vect c=\sum_j a_j\,\vect{hs}_j$};
+\node[lab,text=hotc!80!black] at (98,-26) {mostly the row of \texttt{cat}};
+\end{tikzpicture}

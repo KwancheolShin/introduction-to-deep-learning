@@ -1,0 +1,13 @@
+\begin{tikzpicture}[node distance=2mm]
+\node[tok=attc] (w1) {you};
+\node[tok=hotc,right=of w1,minimum width=14mm,font=\ttfamily\bfseries] (w2) {?};
+\node[tok=attc,right=of w2] (w3) {goodbye};
+\node[tok,right=of w3] (w4) {and};
+\node[tok,right=of w4] (w5) {i};
+\node[tok,right=of w5] (w6) {say};
+\node[tok,right=of w6] (w7) {hello};
+\node[tok,right=of w7] (w8) {.};
+\draw[ar=attc,bend left=45] (w1.north) to (w2.north);
+\draw[ar=attc,bend right=45] (w3.north) to (w2.north);
+\node[below=2mm of w2,lab,text=hotc!80!black] {which word? (answer: \texttt{say})};
+\end{tikzpicture}

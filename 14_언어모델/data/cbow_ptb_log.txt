@@ -1,0 +1,22 @@
+device: cuda
+contexts: (929579, 10)  target: (929579,)
+epoch 1: loss 2.260  (29 s)
+epoch 2: loss 2.045  (59 s)
+epoch 3: loss 1.916  (99 s)
+epoch 4: loss 1.817  (139 s)
+epoch 5: loss 1.738  (174 s)
+epoch 6: loss 1.677  (211 s)
+epoch 7: loss 1.611  (246 s)
+epoch 8: loss 1.565  (282 s)
+epoch 9: loss 1.512  (321 s)
+epoch 10: loss 1.478  (355 s)
+training time: 5.9 min
+you -> [('we', 0.732), ('i', 0.667), ('your', 0.608), ('they', 0.576), ('anything', 0.571)]
+year -> [('month', 0.855), ('week', 0.784), ('summer', 0.753), ('spring', 0.744), ('decade', 0.696)]
+car -> [('luxury', 0.613), ('truck', 0.597), ('window', 0.589), ('vehicle', 0.583), ('cars', 0.572)]
+toyota -> [('coated', 0.633), ('honda', 0.627), ('chevrolet', 0.611), ('f-14', 0.611), ('weyerhaeuser', 0.606)]
+man : king = woman : ?  -> [('bike', 0.614), ('max', 0.566), ('lexington', 0.554), ('horse', 0.55), ('artist', 0.545)]
+take : took = go : ?  -> [('went', 0.669), ('came', 0.591), ('ran', 0.585), ('got', 0.551), ('began', 0.541)]
+car : cars = child : ?  -> [('parents', 0.63), ('women', 0.627), ('males', 0.619), ('children', 0.616), ('adults', 0.614)]
+good : better = bad : ?  -> [('greater', 0.616), ('less', 0.568), ('more', 0.561), ('rather', 0.523), ('ever', 0.487)]
+how often the words appear in the corpus: {'king': 43, 'queen': 7, 'man': 122, 'woman': 95, 'took': 236, 'went': 137, 'children': 106, 'worse': 44}

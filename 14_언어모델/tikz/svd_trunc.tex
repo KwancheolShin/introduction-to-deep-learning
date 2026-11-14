@@ -1,0 +1,21 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+% X (V x V)
+\draw[fill=black!8] (0,0) rectangle (24,-24); \node at (12,-15) {\Large $X$};
+\node[lab] at (12,4) {$X$: $V\times V$};
+\draw[fill=tokc!35] (0,-6) rectangle (24,-9); \node[lab,anchor=east] at (-1,-7.5) {word $i$};
+\node at (30,-12) {\Large $=$};
+% U
+\draw[fill=black!8] (36,0) rectangle (60,-24); \fill[hotc!30] (36,0) rectangle (42,-24); \draw (36,0) rectangle (60,-24);
+\draw[fill=tokc!35,opacity=0.8] (36,-6) rectangle (60,-9);
+\node at (51,-17) {\Large $U$}; \node[lab] at (48,4) {$U$};
+% S
+\draw[fill=white] (64,0) rectangle (88,-24); \draw[thick] (64,0) -- (88,-24); \fill[hotc!30] (64,0) rectangle (70,-6); \draw (64,0) rectangle (88,-24);
+\node at (71,-17) {\Large $S$}; \node[lab] at (76,4) {$S$: diagonal};
+% V^T
+\draw[fill=black!8] (92,0) rectangle (116,-24); \fill[hotc!30] (92,0) rectangle (116,-6); \draw (92,0) rectangle (116,-24);
+\node at (104,-15) {\Large $V\T$}; \node[lab] at (104,4) {$V\T$};
+% notes
+\draw[decorate,decoration={brace,amplitude=4pt,mirror}] (36,-26) -- (42,-26) node[midway,below=2mm,lab,text=hotc!80!black] {first $k$ columns};
+\node[lab,anchor=north,align=center] at (76,-27) {singular values,\\large $\to$ small};
+\node[lab,anchor=north,align=center] at (58,-40) {$k$-dimensional vector of word $i$ = row $i$ of the red part of $U$,\\with each column multiplied by its singular value};
+\end{tikzpicture}

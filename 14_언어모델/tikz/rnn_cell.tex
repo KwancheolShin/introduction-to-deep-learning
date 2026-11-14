@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=8mm]
+\node (hp) {$\vect h_{t-1}$};
+\node[op,right=of hp] (m1) {$\times$}; \node[above=4mm of m1] (wh) {$W_h$};
+\node[below=14mm of hp] (x) {$\vect x_t$};
+\node[op,right=of x] (m2) {$\times$}; \node[below=4mm of m2] (wx) {$W_x$};
+\node[op,right=18mm of m1,yshift=-11mm] (p) {$+$}; \node[below=4mm of p] (b) {$\vect b$};
+\node[lay=grnc,minimum width=12mm,right=of p] (tanh) {$\tanh$};
+\node[right=of tanh] (hn) {$\vect h_t$};
+\draw[ar] (hp) -- (m1); \draw[ar] (wh) -- (m1); \draw[ar] (x) -- (m2); \draw[ar] (wx) -- (m2);
+\draw[ar] (m1) -- (p); \draw[ar] (m2) -- (p); \draw[ar] (b) -- (p); \draw[ar] (p) -- (tanh); \draw[ar] (tanh) -- (hn);
+\draw[ar=hotc,dashed] (hn.north) -- ++(0,10mm) node[above,lab,text=hotc!80!black] {to the next time step, and to the layer above};
+\end{tikzpicture}

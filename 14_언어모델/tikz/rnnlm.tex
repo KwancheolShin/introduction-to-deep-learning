@@ -1,0 +1,19 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=19mm,minimum height=7mm}}
+\foreach \w/\t [count=\i] in {you/say,say/goodbye,goodbye/and,and/i} {
+  \pgfmathsetmacro{\xx}{(\i-1)*29}
+  \node[tok] (w\i) at (\xx,0) {\w};
+  \node[L=tokc] (e\i) at (\xx,13) {Embedding};
+  \node[L=grnc] (r\i) at (\xx,26) {RNN};
+  \node[L=black] (a\i) at (\xx,39) {Affine};
+  \node[L=attc] (s\i) at (\xx,52) {Softmax};
+  \node[tok=hotc] (t\i) at (\xx,65) {\t};
+  \draw[ar] (w\i) -- (e\i); \draw[ar] (e\i) -- (r\i); \draw[ar] (r\i) -- (a\i); \draw[ar] (a\i) -- (s\i);
+  \draw[ar=hotc,dashed] (s\i) -- (t\i);
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar=grnc,thick] (r\a) -- (r\b);
+\draw[ar=grnc,thick,dashed] (r4) -- ++(16,0) node[right,lab] {$\cdots$};
+\node[lab,anchor=east] at (-12,0) {input};
+\node[lab,anchor=east] at (-12,65) {target\\(next word)};
+\node[lab,anchor=east] at (-12,26) {hidden state\\carries the past};
+\end{tikzpicture}

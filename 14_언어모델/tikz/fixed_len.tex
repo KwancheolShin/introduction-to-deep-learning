@@ -1,0 +1,10 @@
+\begin{tikzpicture}[node distance=6mm]
+\tikzset{vec/.pic={\foreach \k in {0,...,3} \draw[fill=attc!30] (\k*4mm,0) rectangle ++(4mm,4mm);}}
+\node[font=\ttfamily,anchor=east] (s1) at (0,0) {I am a cat};
+\node[lay=tokc,minimum width=20mm] (e1) at (2.2,0) {Encoder};
+\draw[ar] (s1) -- (e1); \draw[ar] (e1) -- (3.9,0); \pic at (4,-0.2) {vec};
+\node[font=\ttfamily,anchor=east,text width=66mm,align=right] (s2) at (0,-1.5) {Whatever happened, the one thing I clearly remember is that I was crying in a dark, damp place};
+\node[lay=tokc,minimum width=20mm] (e2) at (2.2,-1.5) {Encoder};
+\draw[ar] (s2) -- (e2); \draw[ar] (e2) -- (3.9,-1.5); \pic at (4,-1.7) {vec};
+\node[lab,anchor=west] at (5.9,-0.75) {$\vect h$: the same size\\for both};
+\end{tikzpicture}

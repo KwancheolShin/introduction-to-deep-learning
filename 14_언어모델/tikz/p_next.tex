@@ -1,0 +1,7 @@
+\begin{tikzpicture}[node distance=2mm]
+\node[tok=attc] (w1) {$w_1$}; \node[tok=attc,right=of w1] (w2) {$w_2$}; \node[right=of w2] (d) {$\cdots$};
+\node[tok=attc,right=of d] (w3) {$w_{t-1}$}; \node[tok=hotc,right=of w3,minimum width=12mm] (w4) {$w_t$\,?};
+\foreach \n in {w1,w2,w3} \draw[ar=attc,bend left=30] (\n.north) to (w4.north);
+\node[lab,right=6mm of w4] {$P(w_t\mid w_1,\dots,w_{t-1})$};
+\node[lab,below=2mm of d,text=attc!80!black] {all the words before $w_t$ are the context};
+\end{tikzpicture}

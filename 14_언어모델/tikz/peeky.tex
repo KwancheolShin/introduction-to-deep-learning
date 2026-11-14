@@ -1,0 +1,25 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=14mm,minimum height=7mm,font=\small}}
+\node[lay=tokc,minimum width=18mm,minimum height=10mm] (enc) at (0,24) {Encoder};
+\node[font=\ttfamily\small] (q) at (0,8) {57+5};
+\draw[ar] (q) -- (enc);
+\foreach \w/\o [count=\i] in {\_/6,6/2,2/{\ },{\ }/{\ }} {
+  \pgfmathsetmacro{\xx}{38+(\i-1)*24}
+  \node[tok=grnc,minimum width=6mm] (y\i) at (\xx,0) {\w};
+  \node[L=grnc] (de\i) at (\xx,12) {Embed};
+  \node[L=grnc] (dl\i) at (\xx,24) {LSTM};
+  \node[L=black] (da\i) at (\xx,36) {Affine};
+  \node[tok=hotc,minimum width=6mm] (o\i) at (\xx,48) {\o};
+  \draw[ar] (y\i) -- (de\i); \draw[ar] (de\i) -- (dl\i); \draw[ar] (dl\i) -- (da\i); \draw[ar] (da\i) -- (o\i);
+  % peeky inputs
+  \draw[ar=hotc,thick] (\xx-9,18) -- ([xshift=-2mm]dl\i.south);
+  \draw[ar=hotc,thick] (\xx-9,30) -- ([xshift=-2mm]da\i.south);
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar] (dl\a) -- (dl\b);
+\draw[hotc,line width=1.6pt] (enc.east) -- (26,24);
+\draw[hotc,line width=1.2pt] (26,18) -- (26,30);
+\draw[hotc,line width=1.2pt] (26,18) -- (101,18); \draw[hotc,line width=1.2pt] (26,30) -- (101,30);
+\draw[ar=hotc,line width=1.6pt] (26,24) -- (dl1);
+\node[lab,text=hotc!80!black] at (17,28) {$\vect h$};
+\node[lab,text=hotc!80!black] at (74,-9) {$\vect h$ (red) goes into every LSTM and every Affine};
+\end{tikzpicture}

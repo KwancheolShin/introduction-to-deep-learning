@@ -1,0 +1,19 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{vec/.style={draw,minimum width=4mm,minimum height=4mm,inner sep=0pt}}
+% sentences
+\node[font=\ttfamily,anchor=west] (s1) at (0,22) {the river \colorbox{attc!30}{bank} was muddy};
+\node[font=\ttfamily,anchor=west] (s2) at (0,4) {open a \colorbox{attc!30}{bank} account};
+% static
+\node[lab,font=\small\bfseries] at (82,34) {word2vec (static)};
+\foreach \k/\c in {0/30,1/60,2/20,3/45} {
+  \node[vec,fill=tokc!\c] at (76+\k*4,22) {}; \node[vec,fill=tokc!\c] at (76+\k*4,4) {}; }
+\node[lab] at (82,-6) {same vector};
+% contextual
+\node[lab,font=\small\bfseries] at (130,34) {Transformer (in context)};
+\foreach \k/\c in {0/55,1/15,2/70,3/25} \node[vec,fill=grnc!\c] at (124+\k*4,22) {};
+\foreach \k/\c in {0/20,1/65,2/30,3/60} \node[vec,fill=hotc!\c] at (124+\k*4,4) {};
+\node[lab] at (130,-6) {different vectors};
+\draw[ar,black!50] (s1.east) -- (73,22); \draw[ar,black!50] (s2.east) -- (73,4);
+\draw[ar,black!50] (92,22) -- (121,22) node[midway,above,lab,font=\scriptsize] {attention to \texttt{river}};
+\draw[ar,black!50] (92,4) -- (121,4) node[midway,above,lab,font=\scriptsize] {attention to \texttt{account}};
+\end{tikzpicture}

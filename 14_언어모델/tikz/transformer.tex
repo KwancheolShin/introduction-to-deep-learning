@@ -1,0 +1,45 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{B/.style={lay=#1,minimum width=36mm,minimum height=7.5mm},
+         an/.style={draw=black!50,fill=yellow!25,rounded corners=2pt,minimum width=36mm,minimum height=5mm,font=\footnotesize},
+         res/.style={->,thick,black!55}}
+% ---------------- encoder ----------------
+\node[B=black] (ein) at (0,0) {embedding + position};
+\node[B=attc] (esa) at (0,17) {self-attention};
+\node[an] (ean1) at (0,26) {add \& norm};
+\node[B=tokc] (eff) at (0,37) {feed forward};
+\node[an] (ean2) at (0,46) {add \& norm};
+\draw[ar] (ein) -- (esa); \draw[ar] (esa) -- (ean1); \draw[ar] (ean1) -- (eff); \draw[ar] (eff) -- (ean2);
+\draw[res] (0,8.5) -| (-23,26) -- (ean1.west);
+\draw[res] (0,31) -| (-23,46) -- (ean2.west);
+\node[font=\ttfamily] (ix) at (0,-12) {I am a cat};
+\draw[ar] (ix) -- (ein);
+\begin{scope}[on background layer]
+\node[draw=black!40,fill=black!3,rounded corners,fit=(esa)(ean2),inner xsep=7mm,inner ysep=3mm] (EB) {};
+\end{scope}
+\node[lab,anchor=east] at (EB.west) {$N\times$\,};
+\node[lab,font=\bfseries] at (0,-20) {Encoder};
+% ---------------- decoder ----------------
+\node[B=black] (din) at (68,0) {embedding + position};
+\node[B=attc] (dsa) at (68,17) {masked self-attention};
+\node[an] (dan1) at (68,26) {add \& norm};
+\node[B=hotc] (dca) at (68,37) {attention to the encoder};
+\node[an] (dan2) at (68,46) {add \& norm};
+\node[B=tokc] (dff) at (68,57) {feed forward};
+\node[an] (dan3) at (68,66) {add \& norm};
+\draw[ar] (din) -- (dsa); \draw[ar] (dsa) -- (dan1); \draw[ar] (dan1) -- (dca); \draw[ar] (dca) -- (dan2); \draw[ar] (dan2) -- (dff); \draw[ar] (dff) -- (dan3);
+\draw[res] (68,8.5) -| (91,26) -- (dan1.east);
+\draw[res] (68,31) -| (91,46) -- (dan2.east);
+\draw[res] (68,51) -| (91,66) -- (dan3.east);
+\begin{scope}[on background layer]
+\node[draw=black!40,fill=black!3,rounded corners,fit=(dsa)(dan3),inner xsep=7mm,inner ysep=3mm] (DB) {};
+\end{scope}
+\node[lab,anchor=west] at (DB.east) {\,$\times N$};
+\node[B=black] (lin) at (68,80) {linear + softmax};
+\draw[ar] (dan3) -- (lin); \draw[ar] (lin) -- (68,89) node[above,lab] {probabilities of the next word};
+\node[font=\ttfamily] (iy) at (68,-12) {<eos> Je suis un};
+\draw[ar] (iy) -- (din);
+\node[lab,font=\bfseries] at (68,-20) {Decoder};
+% encoder output -> decoder attention
+\draw[ar=hotc,line width=1.3pt] (ean2.north) |- (34,52) -- (34,37) -- (dca.west);
+\node[lab,text=hotc!80!black,anchor=south west] at (2,52.3) {key, value};
+\end{tikzpicture}

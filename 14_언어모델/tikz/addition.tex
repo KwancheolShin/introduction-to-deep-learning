@@ -1,0 +1,9 @@
+\begin{tikzpicture}[node distance=10mm]
+\tikzset{q/.style={font=\ttfamily}}
+\foreach \q/\a [count=\i] in {57+5/62,628+521/1149,220+8/228} {
+  \node[q,anchor=east] (q\i) at (0,-9*\i mm) {"\q"};
+  \node[lay=grnc,minimum width=22mm,minimum height=7mm] (s\i) at (25mm,-9*\i mm) {seq2seq};
+  \node[q,anchor=west] (a\i) at (50mm,-9*\i mm) {"\a"};
+  \draw[ar] (q\i) -- (s\i); \draw[ar] (s\i) -- (a\i);
+}
+\end{tikzpicture}

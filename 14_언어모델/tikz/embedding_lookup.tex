@@ -1,0 +1,21 @@
+\begin{tikzpicture}[x=6.5mm,y=6.5mm]
+% word ID
+\node[tok] (id) at (-4.5,0.5) {goodbye};
+\node[draw,minimum size=8mm,font=\large] (num) at (-0.5,0.5) {2};
+\draw[ar] (id) -- node[above,lab] {ID} (num);
+% W (7 x 3) with row 2 highlighted
+\foreach \r [count=\i] in {0,1,2,3,4,5,6} {
+  \pgfmathsetmacro{\yy}{4-\i}
+  \ifnum\i=3 \fill[hotc!35] (4,\yy) rectangle (7,\yy+1); \fi
+  \foreach \k in {0,1,2} { \draw (4+\k,\yy) rectangle (5+\k,\yy+1); }
+  \node[anchor=east,font=\small] at (3.8,\yy+0.5) {\r};
+}
+\node[lab] at (5.5,4.7) {$W_{\text{in}}$ (one row per word)};
+\draw[ar=hotc] (num.east) -- node[above,lab,text=hotc!80!black] {pick row 2} (3.2,0.5);
+% result
+\fill[hotc!35] (10.5,0) rectangle (13.5,1);
+\foreach \k in {0,1,2} { \draw (10.5+\k,0) rectangle (11.5+\k,1); }
+\draw[ar=hotc] (7.2,0.5) -- (10.3,0.5);
+\node[lab] at (12,-0.8) {vector of \texttt{goodbye}};
+\node[lab] at (5.5,-4) {no multiplication: \texttt{nn.Embedding} takes the ID and returns the row};
+\end{tikzpicture}

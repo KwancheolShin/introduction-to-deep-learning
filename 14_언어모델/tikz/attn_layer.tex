@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=7mm]
+\node[lay=attc,minimum width=36mm] (w) {1. weights\\$\vect a=\softmax(\vect h\cdot\vect{hs}_j)$};
+\node[lay=attc,minimum width=36mm,above=of w] (s) {2. weighted sum\\$\vect c=\sum_j a_j\vect{hs}_j$};
+\node[below=8mm of w] (h) {$\vect h$ (decoder)};
+\node[left=14mm of w] (hs) {$\vect{hs}$ (encoder)};
+\node[above=7mm of s] (c) {$\vect c$};
+\draw[ar] (h) -- (w); \draw[ar] (w) -- node[right,lab] {$\vect a$} (s); \draw[ar] (s) -- (c);
+\draw[ar] (hs) -- (w); \draw[ar] (hs) |- (s);
+\begin{scope}[on background layer]
+\node[draw=attc!70!black,dashed,rounded corners,fit=(w)(s),inner sep=3mm,label={[lab,text=attc!80!black]right:Attention layer}] {};
+\end{scope}
+\end{tikzpicture}

@@ -1,0 +1,20 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=14mm,minimum height=7mm,font=\small}}
+\foreach \w [count=\i] in {I,am,a,cat} {
+  \pgfmathsetmacro{\xx}{(\i-1)*22}
+  \node[tok] (x\i) at (\xx,0) {\w};
+  \node[L=tokc] (e\i) at (\xx,12) {Embed};
+  \node[L=tokc] (l\i) at (\xx,24) {LSTM};
+  \draw[ar] (x\i) -- (e\i); \draw[ar] (e\i) -- (l\i);
+  % hidden state of this time step
+  \foreach \k in {0,...,3} {\pgfmathtruncatemacro{\sh}{20+15*mod(\i+\k,4)}\draw[fill=attc!\sh] (\xx-8+\k*4,34) rectangle ++(4,4);}
+  \draw[ar=attc] (l\i.north) -- (\xx,33.5);
+  \node[lab,font=\scriptsize] at (\xx,41) {$\vect h_{\i}$};
+  % the same vector as a row of hs
+  \foreach \k in {0,...,3} {\pgfmathtruncatemacro{\sh}{20+15*mod(\i+\k,4)}\draw[fill=attc!\sh] (106+\k*5,38-\i*7) rectangle ++(5,5);}
+  \node[font=\ttfamily,anchor=west] at (128,40.5-\i*7) {\w};
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar] (l\a) -- (l\b);
+\node[lab] at (116,42) {$\vect{hs}$ ($4\times H$)};
+\draw[ar=attc,line width=1.4pt] (80,22) -- node[above,lab,text=attc!80!black] {stack as rows} (102,22);
+\end{tikzpicture}

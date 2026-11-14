@@ -1,0 +1,27 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=13mm,minimum height=7mm,font=\small}}
+% encoder
+\foreach \w [count=\i] in {I,am,a,cat} {
+  \pgfmathsetmacro{\xx}{(\i-1)*15}
+  \node[tok] (x\i) at (\xx,0) {\w};
+  \node[L=tokc] (ee\i) at (\xx,12) {Embed};
+  \node[L=tokc] (el\i) at (\xx,24) {LSTM};
+  \draw[ar] (x\i) -- (ee\i); \draw[ar] (ee\i) -- (el\i);
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar] (el\a) -- (el\b);
+% decoder
+\foreach \w/\o [count=\i] in {<eos>/Je,Je/suis,suis/un,un/chat,chat/<eos>} {
+  \pgfmathsetmacro{\xx}{66+(\i-1)*17}
+  \node[tok=grnc] (y\i) at (\xx,0) {\w};
+  \node[L=grnc] (de\i) at (\xx,12) {Embed};
+  \node[L=grnc] (dl\i) at (\xx,24) {LSTM};
+  \node[L=black] (da\i) at (\xx,36) {Affine};
+  \node[tok=hotc] (o\i) at (\xx,48) {\o};
+  \draw[ar] (y\i) -- (de\i); \draw[ar] (de\i) -- (dl\i); \draw[ar] (dl\i) -- (da\i); \draw[ar] (da\i) -- (o\i);
+}
+\foreach \a/\b in {1/2,2/3,3/4,4/5} \draw[ar] (dl\a) -- (dl\b);
+\draw[ar=hotc,line width=1.6pt] (el4) -- node[above,lab,text=hotc!80!black] {$\vect h$} (dl1);
+\node[lab,font=\small\bfseries] at (22,36) {Encoder};
+\node[lab,font=\small\bfseries] at (100,60) {Decoder};
+\node[lab] at (100,-9) {decoder input = previous output word};
+\end{tikzpicture}

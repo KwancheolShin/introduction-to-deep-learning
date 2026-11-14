@@ -1,0 +1,38 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{g/.style={draw,fill=#1!15,rounded corners=2pt,minimum width=9mm,minimum height=7mm,font=\small}}
+\draw[fill=black!3,rounded corners=4pt] (3,-22) rectangle (80,50);
+% memory cell line
+\node[op] (mf) at (22,42) {$\times$};
+\node[op] (pa) at (46,42) {$+$};
+\draw[ar=attc,line width=1.5pt] (-8,42) node[left,text=black] {$\vect c_{t-1}$} -- (mf);
+\draw[ar=attc,line width=1.5pt] (mf) -- (pa);
+\draw[ar=attc,line width=1.5pt] (pa) -- (93,42) node[right,text=black] {$\vect c_t$};
+% gates
+\node[g=grnc] (f) at (22,0) {$\sigma$};  \node[lab,left=0.5mm of f] {$\vect f$};
+\node[g=tokc] (gg) at (36,0) {$\tanh$}; \node[lab,above left=0mm and 0mm of gg] {$\vect g$};
+\node[g=grnc] (i) at (50,0) {$\sigma$};  \node[lab,right=0.5mm of i] {$\vect i$};
+\node[g=grnc] (o) at (64,0) {$\sigma$};  \node[lab,right=0.5mm of o] {$\vect o$};
+% inputs
+\draw[thick] (-8,-8) node[left] {$\vect h_{t-1}$} -- (8,-8);
+\draw[thick] (8,-30) node[below] {$\vect x_t$} -- (8,-8);
+\draw[thick] (8,-8) -- (64,-8);
+\foreach \n in {f,gg,i,o} \draw[ar] (\n.south |- 0,-8) -- (\n.south);
+\fill (8,-8) circle (0.8);
+% forget
+\draw[ar] (f) -- (mf);
+% input * g
+\node[op] (mi) at (43,22) {$\times$};
+\draw[ar] (gg.north) |- (mi.west); \draw[ar] (i.north) |- (mi.east); \draw[ar] (mi) -- (pa);
+% output
+\node[g=tokc] (tc) at (72,30) {$\tanh$};
+\node[op] (mo) at (72,12) {$\times$};
+\draw[ar] (72,42) -- (tc); \draw[ar] (tc) -- (mo); \draw[ar] (o.north) |- (mo.west);
+\draw[ar,thick] (mo.east) -- (93,12) node[right] {$\vect h_t$};
+\draw[ar,thick] (86,12) -- (86,58) node[above] {$\vect h_t$};
+\fill (72,42) circle (0.8); \fill (86,12) circle (0.8);
+% labels
+\node[lab,text=grnc!70!black,anchor=north,font=\scriptsize] at (22,-11) {forget};
+\node[lab,text=tokc!70!black,anchor=north,font=\scriptsize] at (36,-11) {new\\memory};
+\node[lab,text=grnc!70!black,anchor=north,font=\scriptsize] at (50,-11) {input};
+\node[lab,text=grnc!70!black,anchor=north,font=\scriptsize] at (64,-11) {output};
+\end{tikzpicture}

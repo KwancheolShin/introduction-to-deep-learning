@@ -1,0 +1,8 @@
+\begin{tikzpicture}[node distance=1.5mm]
+\node[tok=attc] (a1) {you}; \node[tok=hotc,right=of a1,minimum width=10mm] (a2) {?}; \node[tok=attc,right=of a2] (a3) {goodbye};
+\draw[ar=attc,bend left=50] (a1.north) to (a2.north); \draw[ar=attc,bend right=50] (a3.north) to (a2.north);
+\node[lab,font=\bfseries\small,above=7mm of a2] {CBOW: context $\to$ center};
+\node[tok=hotc,minimum width=10mm,right=22mm of a3] (b1) {?}; \node[tok=attc,right=of b1] (b2) {say}; \node[tok=hotc,right=of b2,minimum width=10mm] (b3) {?};
+\draw[ar=attc,bend right=50] (b2.north) to (b1.north); \draw[ar=attc,bend left=50] (b2.north) to (b3.north);
+\node[lab,font=\bfseries\small,above=7mm of b2] {skip-gram: center $\to$ context};
+\end{tikzpicture}

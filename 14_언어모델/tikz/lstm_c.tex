@@ -1,0 +1,11 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\draw[fill=black!4,rounded corners=3pt] (0,0) rectangle (50,30);
+\node[lab,font=\small\bfseries] at (25,14) {LSTM};
+\draw[ar=attc,line width=1.6pt] (-14,24) node[left] {$\vect c_{t-1}$} -- (64,24) node[right] {$\vect c_t$};
+\draw[ar,thick] (-14,8) node[left] {$\vect h_{t-1}$} -- (0,8);
+\draw[ar,thick] (50,8) -- (64,8) node[right] {$\vect h_t$};
+\draw[ar,thick] (25,-12) node[below] {$\vect x_t$} -- (25,0);
+\draw[ar,thick] (42,8) -- (42,42) node[above] {$\vect h_t$ (output)};
+\node[lab,text=attc!80!black,anchor=west] at (66,30) {memory cell: stays inside the LSTM layer};
+\node[lab,anchor=west] at (66,14) {hidden state: also goes to the layer above};
+\end{tikzpicture}

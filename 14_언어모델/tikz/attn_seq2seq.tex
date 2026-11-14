@@ -1,0 +1,35 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=15mm,minimum height=7mm,font=\small}}
+% encoder
+\foreach \w [count=\i] in {I,am,a,cat} {
+  \pgfmathsetmacro{\xx}{(\i-1)*14}
+  \node[tok] (x\i) at (\xx,0) {\w};
+  \node[lay=tokc,minimum width=11mm,minimum height=7mm,font=\small] (el\i) at (\xx,14) {LSTM};
+  \draw[ar] (x\i) -- (el\i);
+  \draw[ar=attc] (el\i.north) -- (\xx,26.8);
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar] (el\a) -- (el\b);
+\node[lay=attc,minimum width=56mm,minimum height=6mm,font=\small,fill=attc!25] (hs) at (21,30) {$\vect{hs}$: all hidden states of the encoder};
+% decoder
+\foreach \w/\o [count=\i] in {<eos>/Je,Je/suis,suis/un,un/chat} {
+  \pgfmathsetmacro{\xx}{68+(\i-1)*21}
+  \node[tok=grnc] (y\i) at (\xx,0) {\w};
+  \node[L=grnc] (dl\i) at (\xx,14) {LSTM};
+  \node[lay=attc,minimum width=10mm,minimum height=7mm,font=\small] (at\i) at (\xx-2.5,30) {Attn};
+  \node[L=black] (af\i) at (\xx,46) {Affine};
+  \node[tok=hotc] (o\i) at (\xx,59) {\o};
+  \draw[ar] (y\i) -- (dl\i);
+  \draw[ar] ([xshift=-2.5mm]dl\i.north) -- (at\i.south);
+  \draw[ar] (at\i.north) -- node[left,lab,font=\footnotesize] {$\vect c$} ([xshift=-2.5mm]af\i.south);
+  \draw[ar] ([xshift=5.5mm]dl\i.north) -- node[right,lab,font=\footnotesize,pos=0.75] {$\vect h$} ([xshift=5.5mm]af\i.south);
+  \draw[ar] (af\i) -- (o\i);
+}
+\foreach \a/\b in {1/2,2/3,3/4} \draw[ar] (dl\a) -- (dl\b);
+\draw[ar=hotc,thick] (el4) -- (dl1);
+% the rail that brings hs to every attention layer
+\begin{scope}[on background layer]
+\draw[attc,line width=2pt] (hs.east) -- (at4.west);
+\end{scope}
+\node[lab,font=\small\bfseries] at (21,38) {Encoder};
+\node[lab,font=\small\bfseries] at (99.5,68) {Decoder};
+\end{tikzpicture}

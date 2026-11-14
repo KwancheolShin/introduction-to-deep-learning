@@ -1,0 +1,13 @@
+\begin{tikzpicture}[level distance=13mm,
+  every node/.style={draw=black!60,fill=black!4,rounded corners=2pt,font=\ttfamily,inner sep=4pt},
+  level 1/.style={sibling distance=36mm}, level 2/.style={sibling distance=28mm}, level 3/.style={sibling distance=24mm},
+  edge from parent/.style={draw,thick,black!55}]
+\node {object}
+  child {node {motor vehicle}
+    child {node {car}
+      child {node {SUV}}
+      child {node {compact}}
+      child {node {hatchback}}}
+    child {node {go-kart}}
+    child {node {truck}}};
+\end{tikzpicture}

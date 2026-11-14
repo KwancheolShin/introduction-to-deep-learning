@@ -1,0 +1,34 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{B/.style={lay=#1,minimum width=40mm,minimum height=7.5mm},
+         an/.style={draw=black!50,fill=yellow!25,rounded corners=2pt,minimum width=40mm,minimum height=5mm,font=\footnotesize},
+         res/.style={->,thick,black!55}}
+% the stack
+\node[B=black] (emb) at (0,0) {word embedding + position embedding};
+\node[B=attc] (sa) at (0,17) {masked self-attention};
+\node[an] (an1) at (0,26) {add \& norm};
+\node[B=tokc] (ff) at (0,37) {feed forward};
+\node[an] (an2) at (0,46) {add \& norm};
+\node[B=black] (lin) at (0,60) {linear ($d\to V$) + softmax};
+\draw[ar] (emb) -- (sa); \draw[ar] (sa) -- (an1); \draw[ar] (an1) -- (ff); \draw[ar] (ff) -- (an2); \draw[ar] (an2) -- (lin);
+\draw[res] (0,8.5) -| (-29,26) -- (an1.west);
+\draw[res] (0,31) -| (-29,46) -- (an2.west);
+\begin{scope}[on background layer]
+\node[draw=black!40,fill=black!3,rounded corners,fit=(sa)(an2),inner xsep=7mm,inner ysep=3mm] (BL) {};
+\end{scope}
+\node[lab,anchor=west] at (BL.east) {\,$\times N$ blocks};
+% input and target words
+\foreach \w/\t [count=\i] in {you/say,say/goodbye,goodbye/and,and/i} {
+  \pgfmathsetmacro{\xx}{-24+(\i-1)*16}
+  \node[tok,font=\ttfamily\small] (in\i) at (\xx,-13) {\w};
+  \node[tok=hotc,font=\ttfamily\small] (out\i) at (\xx,73) {\t};
+  \draw[ar] (in\i.north) -- (\xx,-4.2);
+  \draw[ar] (\xx,64.2) -- (out\i.south);
+}
+\node[lab,anchor=east] at (-34,-13) {input: $T$ words};
+\node[lab,anchor=east] at (-34,73) {target: the next word\\at every position};
+% shapes
+\node[lab,anchor=west,text=black!70] at (34,-13) {word IDs $(B,T)$};
+\node[lab,anchor=west,text=black!70] at (34,0) {$(B,T,d)$};
+\node[lab,anchor=west,text=black!70] at (34,53) {$(B,T,d)$};
+\node[lab,anchor=west,text=black!70] at (34,60) {$(B,T,V)$};
+\end{tikzpicture}

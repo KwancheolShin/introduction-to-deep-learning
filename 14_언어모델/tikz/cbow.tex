@@ -1,0 +1,35 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\def\words{you,say,goodbye,and,i,hello,.}
+% two input columns (one-hot)
+\foreach \col/\hot/\yo in {0/0/0, 0/2/-50} {
+  \foreach \w [count=\i] in \words {
+    \pgfmathtruncatemacro{\j}{\i-1}
+    \ifnum\j=\hot \node[neu,fill=tokc!60] (in\yo-\i) at (\col,\yo-6*\i) {1};
+    \else \node[neu] (in\yo-\i) at (\col,\yo-6*\i) {0}; \fi
+    \node[anchor=east,font=\ttfamily\footnotesize] at (\col-4,\yo-6*\i) {\w};
+  }
+}
+\node[lab] at (-2,2) {context 1: \texttt{you}};
+\node[lab] at (-2,-48) {context 2: \texttt{goodbye}};
+% hidden layer
+\foreach \k in {1,2,3} \node[neu,fill=attc!20] (h\k) at (44,-36-6*\k) {};
+\foreach \i in {1,...,7} \foreach \k in {1,2,3} {
+  \draw[black!15] (in0-\i) -- (h\k); \draw[black!15] (in-50-\i) -- (h\k); }
+\foreach \k in {1,2,3} { \draw[tokc!80!black,thick] (in0-1) -- (h\k); \draw[tokc!80!black,thick] (in-50-3) -- (h\k); }
+\node[lab] at (26,-9) {$W_{\text{in}}$ ($7\times3$)};
+\node[lab] at (26,-88) {$W_{\text{in}}$ (the same)};
+\node[lab] at (44,-27) {hidden layer $\vect h$\\(average of the two rows)};
+% output scores
+\foreach \w [count=\i] in \words { \node[neu,fill=black!8] (o\i) at (82,-24-6*\i) {}; }
+\foreach \k in {1,2,3} \foreach \i in {1,...,7} \draw[black!15] (h\k) -- (o\i);
+\node[lab] at (64,-72) {$W_{\text{out}}$ ($3\times7$)};
+\node[lab] at (82,-21) {scores $\vect s$};
+% probabilities (from cbow_simple.py)
+\foreach \w/\p/\sh [count=\i] in {you/0.000/0,say/0.997/100,goodbye/0.000/0,and/0.003/1,i/0.000/0,hello/0.000/0,./0.000/0} {
+  \node[neu,fill=hotc!\sh] (p\i) at (108,-24-6*\i) {};
+  \node[anchor=west,font=\ttfamily\footnotesize] at (112,-24-6*\i) {\w};
+  \node[anchor=west,font=\footnotesize] at (128,-24-6*\i) {$\p$};
+}
+\draw[ar,line width=1.2pt] (87,-48) -- node[above,lab] {softmax} (103,-48);
+\node[lab] at (116,-18) {probabilities};
+\end{tikzpicture}

@@ -1,0 +1,19 @@
+device: cuda
+[('215+89 ', '_304 '), ('2+984  ', '_986 '), ('433+3  ', '_436 ')]
+characters: [' ', '+', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_']  train/test: 45000 5000
+test problems that are also in the training set: 0
+test problems with a carry: 3534 of 5000
+baseline        : accuracy after epoch 5, 10, 25 = 0.030, 0.070, 0.100  (135 s)
+reverse         : accuracy after epoch 5, 10, 25 = 0.044, 0.106, 0.299  (121 s)
+reverse + peeky : accuracy after epoch 5, 10, 25 = 0.150, 0.919, 0.983  (156 s)
+with a carry: 3487 of 3534 correct;  without: 1428 of 1466 correct
+7+254    true 261   model 261   O  (carry)
+637+46   true 683   model 683   O  (carry)
+456+86   true 542   model 542   O  (carry)
+23+206   true 229   model 229   O
+649+9    true 658   model 658   O  (carry)
+10+359   true 369   model 369   O
+453+97   true 550   model 550   O  (carry)
+81+27    true 108   model 108   O  (carry)
+5+995    true 1000  model 1000  O  (carry)
+379+557  true 936   model 936   O  (carry)
