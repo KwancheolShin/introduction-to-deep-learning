@@ -1,21 +1,24 @@
 \begin{tikzpicture}[x=1mm,y=1mm]
-% the corpus as one long strip
-\draw[fill=black!6] (0,0) rectangle (135,6);
-\foreach \x in {45,90} \draw[thick,hotc] (\x,-1.5) -- (\x,7.5);
-\node[lab,anchor=west] at (0,10) {corpus: one long sequence of word IDs};
-\node[lab,text=hotc!80!black] at (45,-5) {cut}; \node[lab,text=hotc!80!black] at (90,-5) {cut};
-% B rows, with one minibatch and the next one marked in every row
-\foreach \r in {1,2,3} {
-  \pgfmathsetmacro{\yy}{-12-\r*8}
-  \draw[fill=black!6] (0,\yy) rectangle (135,\yy+6);
-  \draw[fill=tokc!35] (30,\yy) rectangle (50,\yy+6);
-  \draw[fill=tokc!12] (50,\yy) rectangle (70,\yy+6);
-  \node[lab,anchor=east] at (-2,\yy+3) {row \r};
-  \draw[ar=grnc,line width=1.2pt] (46,\yy+3) -- (54,\yy+3);
+% the corpus as one long strip, cut into B = 20 pieces
+\draw[fill=black!6] (0,0) rectangle (128,6);
+\foreach \x in {22,44,106} \draw[hotc,line width=1pt] (\x,-1.5) -- (\x,7.5);
+\node[lab] at (11,3) {piece 1}; \node[lab] at (33,3) {piece 2}; \node[lab] at (75,3) {$\cdots$}; \node[lab] at (117,3) {piece 20};
+\node[lab,anchor=west] at (0,10.5) {corpus: words $0$ to $929{,}588$, cut into $B=20$ pieces of $46{,}479$ words};
+% the pieces become rows; each row is read T = 35 words at a time
+\tikzset{cell/.style={draw,minimum width=30mm,minimum height=6.5mm,font=\footnotesize,inner sep=1pt}}
+\foreach \r/\a/\b/\c/\y in {1/{0--34}/{35--69}/{70--104}/-16,
+                            2/{46{,}479--46{,}513}/{46{,}514--46{,}548}/{46{,}549--46{,}583}/-25,
+                            20/{883{,}101--883{,}135}/{883{,}136--883{,}170}/{883{,}171--883{,}205}/-39} {
+  \node[lab,anchor=east] at (14,\y) {row \r};
+  \node[cell,fill=tokc!30] (a\r) at (31,\y) {\a};
+  \node[cell,fill=tokc!15] (b\r) at (66,\y) {\b};
+  \node[cell,fill=tokc!6] (c\r) at (101,\y) {\c};
+  \draw[ar=grnc,line width=1pt] (a\r) -- (b\r);
+  \draw[ar=grnc,line width=1pt] (b\r) -- (c\r);
+  \draw[ar=grnc,line width=1pt,dashed] (c\r.east) -- ++(6,0) node[right,lab,text=black] {$\cdots$};
 }
-\node[lab] at (40,-10.5) {minibatch $(B,T)$};
-\node[lab] at (61,-10.5) {next};
-\draw[decorate,decoration={brace,amplitude=4pt,mirror}] (30,-38) -- (50,-38) node[midway,below=2mm,lab] {$T$ words};
-\node[lab,anchor=north east,align=left] at (135,-40) {{\color{grnc}$\boldsymbol{\rightarrow}$}\ \ the hidden state at the end of a minibatch is\\\phantom{$\boldsymbol{\rightarrow}$}\ \ the starting state of the next one (one per row)};
-\node[lab,anchor=east] at (-2,-9) {$B$ rows};
+\node[lab] at (31,-31.5) {$\vdots$}; \node[lab] at (66,-31.5) {$\vdots$}; \node[lab] at (101,-31.5) {$\vdots$};
+\node[lab] at (31,-9.5) {minibatch 1}; \node[lab] at (66,-9.5) {minibatch 2}; \node[lab] at (101,-9.5) {minibatch 3};
+\draw[decorate,decoration={brace,amplitude=4pt,mirror}] (16,-43.5) -- (46,-43.5) node[midway,below=2mm,lab] {$(B,T)=(20,35)$ word IDs};
+\node[lab,anchor=north west,align=left] at (52,-45) {{\color{grnc}$\boldsymbol{\rightarrow}$}\ the hidden state of each row is passed\\\phantom{$\boldsymbol{\rightarrow}$}\ to the same row of the next minibatch};
 \end{tikzpicture}

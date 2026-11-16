@@ -1,0 +1,32 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{R/.style={lay=grnc,minimum width=13mm,minimum height=8mm},
+         Lo/.style={lay=attc,minimum width=15mm,minimum height=7mm}}
+% columns: time steps 1, 2, 3, T
+\foreach \lbl [count=\i] in {1,2,3,T} {
+  \pgfmathsetmacro{\xx}{(\i-1)*30}
+  \node[R] (r\i) at (\xx,0) {RNN};
+  \node (x\i) at (\xx,-15) {$\vect x_{\lbl}$};
+  \node[Lo] (l\i) at (\xx,32) {loss $\loss_{\lbl}$};
+  \coordinate (b\i) at (\xx,12);                       % branch point of h_t
+  \draw[ar] (x\i) -- (r\i);
+  \draw[thick,black!80] (r\i.north) -- node[left,lab] {$\vect h_{\lbl}$} (b\i);
+  \draw[ar] (b\i) -- (l\i.south);
+  \fill (b\i) circle (0.7);
+  % backward: from the loss above and from the next step, added at the + node
+  \node[op,draw=hotc,text=hotc,minimum size=4.5mm,font=\footnotesize] (p\i) at (\xx+5,18) {$+$};
+  \draw[ar=hotc] ($(l\i.south)+(5,0)$) -- (p\i);
+  \draw[ar=hotc] (p\i) -- ($(r\i.north)+(5,0)$);
+}
+% forward to the next step (black) and backward from the next step (red)
+\foreach \a/\b/\s in {1/2/solid,2/3/solid,3/4/dashed} {
+  \pgfmathsetmacro{\xa}{(\a-1)*30}
+  \draw[ar,\s] (b\a) -- (\xa+15,12) -- (\xa+15,0) -- (r\b.west);
+  \draw[ar=hotc,\s] ($(r\b.west)+(0,-2.5)$) -- (\xa+19,-2.5) -- (\xa+19,18) -- (p\a);
+}
+% labels
+\node[lab,text=hotc!80!black,anchor=west] at (6,25) {from $\loss_1$};
+\node[lab,text=hotc!80!black,anchor=north] at (21,-4) {from step 2};
+\node[lab,anchor=east] at (-12,2) {forward (black)};
+\node[lab,anchor=east,text=hotc!80!black] at (-12,-4) {backward (red)};
+\node[lab] at (45,43) {$\loss=\frac1T(\loss_1+\loss_2+\cdots+\loss_T)$};
+\end{tikzpicture}

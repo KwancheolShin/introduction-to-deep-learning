@@ -4,6 +4,9 @@
 #   2. self-attention does not see the order of the words; adding position vectors fixes it
 #   3. softmax with temperature
 #   4. LayerNorm of one vector
+#   5. why the attention scores are divided by sqrt(d)
+#   6. top-k and top-p sampling
+#   7. sinusoidal position vectors (figure: ../figures/sinusoidal_positions.png)
 import numpy as np
 
 np.set_printoptions(precision=4, suppress=True)
@@ -70,3 +73,49 @@ for tau in [0.5, 1.0, 2.0]:
 x = np.array([1.0, 2.0, 3.0, 6.0])
 mu, var = x.mean(), x.var()
 print(f"x = {x}, mean {mu}, variance {var}, LayerNorm(x) = {(x - mu) / np.sqrt(var)}")
+
+# %% 5. Why the scores are divided by sqrt(d)
+# q and k with independent components of mean 0 and variance 1: q . k has variance d.
+rng = np.random.default_rng(0)
+for d in [4, 64, 1024]:
+    q = rng.standard_normal((2000, 1, d))
+    k = rng.standard_normal((2000, 10, d))        # 10 keys for every query
+    s = (q * k).sum(axis=-1)                      # (2000, 10) scores
+    print(f"d = {d:4d}: std of q.k = {s.std():6.2f} (sqrt(d) = {np.sqrt(d):5.2f}); "
+          f"mean of the largest weight over 10 keys: without /sqrt(d) {softmax(s).max(axis=1).mean():.3f}, "
+          f"with /sqrt(d) {softmax(s / np.sqrt(d)).max(axis=1).mean():.3f}")
+
+# %% 6. Top-k and top-p (nucleus) sampling: keep only the likely words, then renormalize
+p = softmax(np.array([3.0, 2.5, 2.0, 1.0, 0.5, 0.0, -1.0]))
+print("p =", p)
+k = 3
+p_topk = np.where(p >= np.sort(p)[-k], p, 0.0)
+print(f"top-k (k = {k}):", p_topk / p_topk.sum())
+order = np.argsort(-p)
+cum = np.cumsum(p[order])
+keep = order[:np.searchsorted(cum, 0.9) + 1]      # the fewest words whose total reaches 0.9
+p_topp = np.zeros_like(p); p_topp[keep] = p[keep]
+print("cumulative p (sorted):", cum)
+print("top-p (p = 0.9):", p_topp / p_topp.sum())
+
+# %% 7. Sinusoidal position vectors (the original Transformer)
+def sinusoidal(n_pos, d):
+    pos = np.arange(n_pos)[:, None]
+    i = np.arange(0, d, 2)[None, :]
+    P = np.zeros((n_pos, d))
+    P[:, 0::2] = np.sin(pos / 10000 ** (i / d))
+    P[:, 1::2] = np.cos(pos / 10000 ** (i / d))
+    return P
+
+print("positions 0-3, d = 4:\n", sinusoidal(4, 4))
+P = sinusoidal(100, 64)
+print("p_t . p_(t+k) for t = 0, 10, 50:")
+for k in [1, 5, 20]:
+    print(f"  k = {k:2d}:", [round(float(P[t] @ P[t + k]), 4) for t in (0, 10, 50)])
+
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(figsize=(7, 2.8))
+im = ax.imshow(sinusoidal(60, 64).T, aspect="auto", cmap="RdBu_r", vmin=-1, vmax=1)
+ax.set_xlabel("position t"); ax.set_ylabel("component of p_t")
+fig.colorbar(im, ax=ax, fraction=0.03)
+fig.tight_layout(); fig.savefig("../figures/sinusoidal_positions.png", dpi=150)

@@ -1,0 +1,26 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{D/.style={lay=#1,text width=17mm,minimum height=13mm},
+         C/.style={lay=black,text width=27mm,minimum height=13mm}}
+\node[lab,anchor=east] (h) at (-1,-25) {$\vect h$};
+\draw[thick,black!80] (h.east) -- (5,-25);
+\draw[thick,black!80] (5,-4) -- (5,-54);
+% one row per word: (word, ID, y, color, target, sigmoid output, loss term)
+\foreach \w/\id/\c/\col/\t/\y/\f [count=\i] in
+  {say/1/0/grnc/1/0.9/{-\log 0.9},
+   you/0/-25/hotc/0/0.2/{-\log(1-0.2)},
+   hello/5/-50/hotc/0/0.1/{-\log(1-0.1)}}{
+  \node[D=\col] (d\i) at (32,\c) {dot with\\row $\id$ of $W_{\text{out}}$};
+  \draw[ar] ($(d\i.west)+(-15,4)$) -- node[above,lab] {\texttt{\w}: $\id$} ($(d\i.west)+(0,4)$);
+  \draw[ar] (5,\c-4) -- ($(d\i.west)+(0,-4)$);
+  \node[C] (c\i) at (70,\c) {sigmoid: $y=\y$\\cross-entropy};
+  \node[lab,above=0.5mm of c\i] {target $\t$};
+  \draw[ar] (d\i) -- (c\i);
+  \node[lab] (f\i) at (103,\c+3) {$\f$};
+}
+\node[op,font=\large] (plus) at (124,-25) {$+$};
+\draw[ar] (c1.east) -- node[below,lab] {$=0.105$} (124,0) -- (plus);
+\draw[ar] (c2.east) -- node[below,lab] {$=0.223$} (plus);
+\draw[ar] (c3.east) -- node[below,lab] {$=0.105$} (124,-50) -- (plus);
+\node[lab,anchor=west] (L) at (132,-25) {loss\\$=0.434$};
+\draw[ar] (plus) -- (L);
+\end{tikzpicture}

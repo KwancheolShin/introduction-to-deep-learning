@@ -1,22 +1,38 @@
 \begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=15mm,minimum height=7mm}}
 % folded
-\node[lay=grnc,minimum width=18mm,minimum height=12mm] (r) at (0,0) {RNN};
-\node (x) at (0,-18) {$\vect x_t$}; \node (h) at (0,18) {$\vect h_t$};
-\draw[ar] (x) -- (r); \draw[ar] (r) -- (h);
-\draw[ar=hotc,thick] (0,11) -- (-17,11) -- (-17,0) -- (r.west);
-\fill[hotc] (0,11) circle (0.7);
-\node[lab,text=hotc!80!black] at (-17,16) {$\vect h_t$ comes back};
-\node[lab,text=hotc!80!black] at (-17,-5) {as $\vect h_{t-1}$};
-\node at (22,0) {\Large $=$};
+\node (x) at (0,-15) {$\vect x_t$};
+\node[L=grnc] (r) at (0,0) {RNN};
+\node[L=black] (a) at (0,17) {Affine};
+\node[L=attc] (s) at (0,30) {Softmax};
+\node (y) at (0,44) {$\vect y_t$};
+\draw[ar] (x) -- (r); \draw[ar] (r) -- node[right,lab,pos=0.45] {$\vect h_t$} (a);
+\draw[ar] (a) -- (s); \draw[ar] (s) -- (y);
+\draw[ar=hotc,thick] (0,8) -- (-15,8) -- (-15,0) -- (r.west);
+\fill[hotc] (0,8) circle (0.7);
+\node[lab,text=hotc!80!black,anchor=east] at (-20,4) {$\vect h_t$ comes\\back as $\vect h_{t-1}$};
+\node at (18,15) {\Large $=$};
 % unrolled
 \foreach \lbl [count=\i] in {1,2,3,T} {
-  \pgfmathsetmacro{\xx}{40+(\i-1)*28}
-  \node[lay=grnc,minimum width=16mm,minimum height=10mm] (u\i) at (\xx,0) {RNN};
-  \node (xx\i) at (\xx,-18) {$\vect x_{\lbl}$}; \node (hh\i) at (\xx,18) {$\vect h_{\lbl}$};
-  \draw[ar] (xx\i) -- (u\i); \draw[ar] (u\i) -- (hh\i);
+  \pgfmathsetmacro{\xx}{36+(\i-1)*23}
+  \node (xx\i) at (\xx,-15) {$\vect x_{\lbl}$};
+  \node[L=grnc] (u\i) at (\xx,0) {RNN};
+  \node[L=black] (a\i) at (\xx,17) {Affine};
+  \node[L=attc] (s\i) at (\xx,30) {Softmax};
+  \node (yy\i) at (\xx,44) {$\vect y_{\lbl}$};
+  \draw[ar] (xx\i) -- (u\i);
+  \draw[ar] (u\i) -- node[right,lab,pos=0.45] {$\vect h_{\lbl}$} (a\i);
+  \draw[ar] (a\i) -- (s\i); \draw[ar] (s\i) -- (yy\i);
 }
-\draw[ar=hotc,thick] (u1) -- node[above,lab,text=hotc!80!black] {$\vect h_1$} (u2);
-\draw[ar=hotc,thick] (u2) -- node[above,lab,text=hotc!80!black] {$\vect h_2$} (u3);
-\draw[ar=hotc,thick,dashed] (u3) -- node[above,lab] {$\cdots$} (u4);
-\node[lab] at (82,-27) {the same RNN layer (the same weights) at every time step};
+\draw[ar=hotc,thick] (u1) -- node[below,lab,text=hotc!80!black] {$\vect h_1$} (u2);
+\draw[ar=hotc,thick] (u2) -- node[below,lab,text=hotc!80!black] {$\vect h_2$} (u3);
+\draw[ar=hotc,thick,dashed] (u3) -- node[below,lab] {$\cdots$} (u4);
+\node[lab,anchor=east] at (-6,42) {output\\(next-word\\probabilities)};
+% boxes: the recurrent part (input -> RNN -> h_t)
+\tikzset{RB/.style={draw=grnc!60!black,thick,dashed,rounded corners=2mm}}
+\draw[RB] (-18,-20) rectangle (9,11.5);
+\draw[RB] (26,-20) rectangle (114,11.5);
+\node[lab,text=grnc!50!black] at (-4.5,-23) {recurrent part};
+\node[lab,text=grnc!50!black] at (70,-23) {recurrent part: $\vect h_t$ is passed to the right};
+\node[lab] at (70,-28) {the same layers (the same weights) at every time step};
 \end{tikzpicture}

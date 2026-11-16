@@ -1,0 +1,65 @@
+% LSTM built up step by step (same layout as lstm_full.tex).
+% \lstmstage: 1 = memory cell only, 2 = + output gate, 3 = + forget gate, 4 = + new memory g
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{g/.style={draw,fill=#1!15,rounded corners=2pt,minimum width=9mm,minimum height=7mm,font=\small},
+         new/.style={draw=hotc,dashed,thick,rounded corners=3pt,inner sep=1.5mm}}
+\draw[fill=black!3,rounded corners=4pt] (3,-22) rectangle (80,50);
+% inputs h_{t-1}, x_t and the bus to the gates
+\pgfmathsetmacro{\busend}{\lstmstage==1 ? 34 : 64}
+\draw[thick] (-8,-8) node[left] {$\vect h_{t-1}$} -- (8,-8);
+\draw[thick] (8,-30) node[below] {$\vect x_t$} -- (8,-8);
+\draw[thick] (8,-8) -- (\busend,-8);
+\fill (8,-8) circle (0.8);
+% ---------- the memory cell line ----------
+\ifnum\lstmstage<3
+  % stages 1-2: how c_t is computed is left open (one box)
+  \node[lay=attc,minimum width=16mm,minimum height=7mm,font=\small] (up) at (34,42) {update};
+  \draw[ar=attc,line width=1.5pt] (-8,42) node[left,text=black] {$\vect c_{t-1}$} -- (up);
+  \draw[ar=attc,line width=1.5pt] (up) -- (93,42) node[right,text=black] {$\vect c_t$};
+  \draw[ar] (34,-8) -- (up.south);
+\else
+  \node[op] (mf) at (22,42) {$\times$};
+  \node[g=grnc] (f) at (22,0) {$\sigma$};  \node[lab,left=0.5mm of f] {$\vect f$};
+  \draw[ar] (f.south |- 0,-8) -- (f.south);
+  \draw[ar] (f) -- (mf);
+  \node[lab,text=grnc!70!black,anchor=north,font=\scriptsize] at (22,-11) {forget};
+  \draw[ar=attc,line width=1.5pt] (-8,42) node[left,text=black] {$\vect c_{t-1}$} -- (mf);
+  \ifnum\lstmstage<4
+    \draw[ar=attc,line width=1.5pt] (mf) -- (93,42) node[right,text=black] {$\vect c_t$};
+  \else
+    \node[op] (pa) at (46,42) {$+$};
+    \node[g=tokc] (gg) at (36,0) {$\tanh$}; \node[lab,above left=0mm and 0mm of gg] {$\vect g$};
+    \draw[ar] (gg.south |- 0,-8) -- (gg.south);
+    \draw[ar] (gg.north) -- (36,22) -| (pa.south);
+    \node[lab,text=tokc!70!black,anchor=north,font=\scriptsize] at (36,-11) {new\\memory};
+    \draw[ar=attc,line width=1.5pt] (mf) -- (pa);
+    \draw[ar=attc,line width=1.5pt] (pa) -- (93,42) node[right,text=black] {$\vect c_t$};
+  \fi
+\fi
+% ---------- reading the memory: tanh(c_t) -> h_t ----------
+\node[g=tokc] (tc) at (72,30) {$\tanh$};
+\draw[ar] (72,42) -- (tc);
+\fill (72,42) circle (0.8);
+\ifnum\lstmstage=1
+  \draw[ar,thick] (tc) -- (72,12) -- (93,12) node[right] {$\vect h_t$};
+  \fill (86,12) circle (0.8);
+\else
+  \node[op] (mo) at (72,12) {$\times$};
+  \node[g=grnc] (o) at (64,0) {$\sigma$};  \node[lab,right=0.5mm of o] {$\vect o$};
+  \draw[ar] (o.south |- 0,-8) -- (o.south);
+  \draw[ar] (tc) -- (mo); \draw[ar] (o.north) |- (mo.west);
+  \draw[ar,thick] (mo.east) -- (93,12) node[right] {$\vect h_t$};
+  \fill (86,12) circle (0.8);
+  \node[lab,text=grnc!70!black,anchor=north,font=\scriptsize] at (64,-11) {output};
+\fi
+\draw[ar,thick] (86,12) -- (86,58) node[above] {$\vect h_t$};
+% ---------- what is new in this step ----------
+\ifcase\lstmstage\or
+\or
+  \node[new,fit=(o)(mo)] {};
+\or
+  \node[new,fit=(f)(mf)] {};
+\or
+  \node[new,fit=(gg)(pa)] {};
+\fi
+\end{tikzpicture}

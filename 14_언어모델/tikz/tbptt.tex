@@ -1,20 +1,29 @@
 \begin{tikzpicture}[x=1mm,y=1mm]
-\foreach \i in {1,...,6} {
-  \pgfmathsetmacro{\xx}{(\i-1)*22+(\i>3?10:0)}
-  \node[lay=grnc,minimum width=13mm,minimum height=9mm] (r\i) at (\xx,0) {RNN};
-  \node (x\i) at (\xx,-15) {$\vect x_{\i}$};
-  \draw[ar] (x\i) -- (r\i);
+\tikzset{R/.style={lay=grnc,minimum width=12mm,minimum height=7mm},
+         Lo/.style={lay=attc,minimum width=10mm,minimum height=6mm,inner sep=1pt}}
+% two blocks of T time steps; three columns are drawn for each block
+\foreach \lbl/\xx/\n in {1/0/1, 2/20/2, T/42/3, T+1/76/4, T+2/96/5, 2T/118/6} {
+  \node[R] (r\n) at (\xx,0) {RNN};
+  \node (x\n) at (\xx,-13) {$\vect x_{\lbl}$};
+  \node[Lo] (l\n) at (\xx,20) {$\loss_{\lbl}$};
+  \draw[ar] (x\n) -- (r\n);
+  \draw[ar] ($(r\n.north)+(-1.5,0)$) -- ($(l\n.south)+(-1.5,0)$);
+  \draw[ar=hotc] ($(l\n.south)+(1.5,0)$) -- ($(r\n.north)+(1.5,0)$);
 }
-% forward: continuous
-\foreach \a/\b in {1/2,2/3,4/5,5/6} \draw[ar,thick] ([yshift=2mm]r\a.east) -- ([yshift=2mm]r\b.west);
-\draw[ar,thick] ([yshift=2mm]r3.east) -- ([yshift=2mm]r4.west);
-% backward: within blocks only
-\foreach \a/\b in {2/1,3/2,5/4,6/5} \draw[ar=hotc,thick] ([yshift=-2mm]r\a.west) -- ([yshift=-2mm]r\b.east);
-\draw[hotc,thick,dashed] ([yshift=-2mm]r4.west) -- ([yshift=-2mm]r3.east);
-\node[text=hotc,font=\Large] at ($(r3)!0.5!(r4)+(0,-2mm)$) {$\times$};
-\node[lab] at (60,-26) {forward (black): continues across blocks \quad \textcolor{hotc!80!black}{backward (red): cut at the border}};
+% inside a block: forward (black) and backward (red)
+\foreach \a/\b/\s in {1/2/solid,2/3/dashed,4/5/solid,5/6/dashed} {
+  \draw[ar,\s] ([yshift=1.5mm]r\a.east) -- ([yshift=1.5mm]r\b.west);
+  \draw[ar=hotc,\s] ([yshift=-1.5mm]r\b.west) -- ([yshift=-1.5mm]r\a.east);
+}
+% between the blocks: only the value of h_T goes on
+\draw[ar,thick] ([yshift=1.5mm]r3.east) -- node[above,lab] {$\vect h_T$} ([yshift=1.5mm]r4.west);
+\node[text=hotc,font=\large] at ($(r3.east)!0.5!(r4.west)+(0,-1.5)$) {$\times$};
+\node[lab,text=hotc!80!black,anchor=north] at ($(r3.east)!0.5!(r4.west)+(0,-4)$) {no backward};
 \begin{scope}[on background layer]
-\node[draw=black!40,dashed,rounded corners,fit=(r1)(r3)(x1)(x3),inner sep=3mm,label={[lab]above:block 1}] {};
-\node[draw=black!40,dashed,rounded corners,fit=(r4)(r6)(x4)(x6),inner sep=3mm,label={[lab]above:block 2}] {};
+\node[draw=black!40,dashed,rounded corners,fit=(r1)(r3)(x1)(l1)(l3),inner sep=3mm,
+      label={[lab]above:block 1: first update}] {};
+\node[draw=black!40,dashed,rounded corners,fit=(r4)(r6)(x4)(l4)(l6),inner sep=3mm,
+      label={[lab]above:block 2: second update}] {};
 \end{scope}
+\node[lab] at (59,-24) {forward (black) continues across blocks; \textcolor{hotc!80!black}{backward (red) stays inside a block}};
 \end{tikzpicture}

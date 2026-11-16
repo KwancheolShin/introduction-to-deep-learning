@@ -1,0 +1,23 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{L/.style={lay=#1,minimum width=30mm,minimum height=7mm}}
+% CBOW
+\node[lab,font=\bfseries] at (0,52) {CBOW (word2vec)};
+\node[tok] (c1) at (0,0) {context words};
+\node[L=tokc] (ce) at (0,12) {$W_{\text{in}}$ (Embedding)};
+\node[L=black] (ca) at (0,24) {average};
+\node[L=hotc] (co) at (0,36) {$W_{\text{out}}$};
+\node[tok=hotc] (ct) at (0,46) {center word};
+\draw[ar] (c1) -- (ce); \draw[ar] (ce) -- (ca); \draw[ar] (ca) -- (co); \draw[ar] (co) -- (ct);
+% GPT
+\node[lab,font=\bfseries] at (70,52) {GPT};
+\node[tok] (g1) at (70,0) {earlier tokens};
+\node[L=tokc] (ge) at (70,12) {Embedding};
+\node[L=attc,minimum height=10mm] (ga) at (70,25) {Transformer blocks\\(attention, $N$ times)};
+\node[L=hotc] (go) at (70,36.5) {output layer};
+\node[tok=hotc] (gt) at (70,46) {next token};
+\draw[ar] (g1) -- (ge); \draw[ar] (ge) -- (ga); \draw[ar] (ga) -- (go); \draw[ar] (go) -- (gt);
+% correspondences
+\draw[dashed,tokc,thick] (ce.east) -- node[above,lab,text=tokc] {same layer} (ge.west);
+\draw[dashed,hotc,thick] (co.east) -- node[above,lab,text=hotc] {same role} (go.west);
+\draw[dashed,attc,thick] (ca.east) -- node[below,lab,text=attc!80!black] {replaced} (ga.west);
+\end{tikzpicture}

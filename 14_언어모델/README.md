@@ -33,7 +33,7 @@
 | `rnnlm_ptb.py` | RNN과 LSTM 언어모델, 문장 생성, PTB (GPU 권장) |
 | `seq2seq_addition.py` | 덧셈을 배우는 seq2seq: 기본, 입력 뒤집기, 엿보기 (GPU 권장) |
 | `attention_date.py` | 어텐션을 넣은 seq2seq로 날짜 형식 바꾸기, 어텐션 가중치 그림 (GPU 권장) |
-| `lm_tiny.py` | 손으로 따라갈 수 있는 작은 예: self-attention, 위치 벡터, temperature, LayerNorm |
+| `lm_tiny.py` | 손으로 따라갈 수 있는 작은 예: self-attention, 위치 벡터 (사인파 포함), temperature, top-k와 top-p, LayerNorm, √d로 나누는 이유 |
 | `gpt_ptb.py` | 작은 GPT (Decoder만 쓰는 Transformer) 언어모델, PTB (GPU 권장) |
 | `bpe_tokens.py` | BPE로 토큰 만들기: 작은 예와 PTB |
 | `figures_extra.py` | 설명용 그래프: 차원 축소, 오답 샘플링 분포, RNN의 기울기, 퍼플렉서티, 어텐션 가중치 |

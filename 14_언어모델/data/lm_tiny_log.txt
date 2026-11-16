@@ -44,3 +44,19 @@ temperature 0.5: p = [0.8668 0.1173 0.0159]
 temperature 1.0: p = [0.6652 0.2447 0.09  ]
 temperature 2.0: p = [0.5065 0.3072 0.1863]
 x = [1. 2. 3. 6.], mean 3.0, variance 3.5, LayerNorm(x) = [-1.069  -0.5345  0.      1.6036]
+d =    4: std of q.k =   2.01 (sqrt(d) =  2.00); mean of the largest weight over 10 keys: without /sqrt(d) 0.496, with /sqrt(d) 0.304
+d =   64: std of q.k =   7.93 (sqrt(d) =  8.00); mean of the largest weight over 10 keys: without /sqrt(d) 0.866, with /sqrt(d) 0.319
+d = 1024: std of q.k =  31.87 (sqrt(d) = 32.00); mean of the largest weight over 10 keys: without /sqrt(d) 0.965, with /sqrt(d) 0.316
+p = [0.4425 0.2684 0.1628 0.0599 0.0363 0.022  0.0081]
+top-k (k = 3): [0.5065 0.3072 0.1863 0.     0.     0.     0.    ]
+cumulative p (sorted): [0.4425 0.7109 0.8737 0.9335 0.9699 0.9919 1.    ]
+top-p (p = 0.9): [0.474  0.2875 0.1744 0.0641 0.     0.     0.    ]
+positions 0-3, d = 4:
+ [[ 0.      1.      0.      1.    ]
+ [ 0.8415  0.5403  0.01    1.    ]
+ [ 0.9093 -0.4161  0.02    0.9998]
+ [ 0.1411 -0.99    0.03    0.9996]]
+p_t . p_(t+k) for t = 0, 10, 50:
+  k =  1: [30.9168, 30.9168, 30.9168]
+  k =  5: [23.504, 23.504, 23.504]
+  k = 20: [18.8791, 18.8791, 18.8791]

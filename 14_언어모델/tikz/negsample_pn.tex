@@ -1,9 +1,18 @@
-\begin{tikzpicture}[node distance=6mm]
-\matrix[row sep=3mm,column sep=6mm] (m) {
-  \node[lab,font=\bfseries\small] {}; & \node[lab] {word}; & \node[lab] {score}; & \node[lab] {$\sigma(\text{score})$}; & \node[lab] {target}; \\
-  \node[lab,text=grnc!80!black,font=\bfseries\small] {positive}; & \node[tok=grnc] {say}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{say}}$}; & \node[lab] {$\to$ close to $1$}; & \node[lab] {$1$}; \\
-  \node[lab,text=hotc!80!black,font=\bfseries\small] {negative}; & \node[tok=hotc] {you}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{you}}$}; & \node[lab] {$\to$ close to $0$}; & \node[lab] {$0$}; \\
-  \node[lab,text=hotc!80!black,font=\bfseries\small] {negative}; & \node[tok=hotc] {hello}; & \node[lab] {$\vect h\cdot\vect w^{\text{out}}_{\texttt{hello}}$}; & \node[lab] {$\to$ close to $0$}; & \node[lab] {$0$}; \\
-};
-\node[lab,below=2mm of m,text width=100mm] {context (\texttt{you}, \texttt{goodbye}), answer \texttt{say}; the negatives are drawn at random};
+\begin{tikzpicture}[x=1mm,y=1mm]
+\tikzset{D/.style={lay=#1,text width=21mm,minimum height=15mm}}
+% one row per word: (word, ID, y, color, target)
+\foreach \w/\id/\c/\col/\t [count=\i] in {say/1/0/grnc/1, you/0/-25/hotc/0, hello/5/-45/hotc/0}{
+  \node[D=\col] (d\i) at (36,\c) {dot product\\with row $\id$\\of $W_{\text{out}}$};
+  \draw[ar] ($(d\i.west)+(-20,4)$) -- node[above,lab] {\texttt{\w}: ID $\id$} ($(d\i.west)+(0,4)$);
+  \draw[ar] ($(d\i.west)+(-20,-4)$) -- ($(d\i.west)+(0,-4)$);
+  \node[lab,anchor=east] at ($(d\i.west)+(-20,-4)$) {$\vect h$};
+  \node[lay=black] (s\i) at (76,\c) {sigmoid};
+  \draw[ar] (d\i) -- node[above,lab] {score} (s\i);
+  \node[lab,anchor=west] (o\i) at (92,\c) {output should be\\close to $\t$ (target $\t$)};
+  \draw[ar] (s\i) -- (o\i);
+}
+\draw[dashed,black!50] (-24,-12) -- (128,-12);
+\node[lab,text=grnc!80!black,font=\bfseries\small] at (-17,0) {positive\\(answer)};
+\node[lab,text=hotc!80!black,font=\bfseries\small] at (-17,-35) {negatives\\(sampled)};
+\node[lab] at (52,-57) {context (\texttt{you}, \texttt{goodbye}), answer \texttt{say}; the same $\vect h$ goes into every row};
 \end{tikzpicture}
