@@ -1,0 +1,172 @@
+% Shared preamble of the three slide decks of this unit
+% (slides_lm1.tex, slides_lm2.tex, slides_lm3.tex).
+% The look is the same as the PINN and CNN slides.
+% The figure files in tikz/ are the ones of the notes (main.tex),
+% so the colors and TikZ styles below are the same as in the notes.
+
+% -------------------------------------------------
+% Packages
+% -------------------------------------------------
+\usepackage{kotex}
+\usepackage{fontspec}
+\usepackage{amsmath,amssymb,bm,mathtools}
+\usepackage{booktabs,array}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,calc,fit,backgrounds,
+  decorations.pathreplacing,shapes.misc}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{adjustbox}
+
+% -------------------------------------------------
+% Colors (same as the notes)
+% -------------------------------------------------
+\definecolor{deepblue}{RGB}{34,71,120}
+\definecolor{softblue}{RGB}{239,246,253}
+\definecolor{softgray}{RGB}{246,247,249}
+\definecolor{softgreen}{RGB}{239,249,242}
+\definecolor{softyellow}{RGB}{255,249,229}
+\definecolor{codegray}{RGB}{248,248,248}
+% colors of the figures
+\definecolor{tokc}{RGB}{31,100,180}
+\definecolor{hotc}{RGB}{200,30,40}
+\definecolor{attc}{RGB}{214,110,0}
+\definecolor{grnc}{RGB}{40,140,70}
+
+% TikZ styles used by the files in tikz/ (same as the notes)
+\tikzset{
+  >=Latex,
+  tok/.style={draw=#1!70!black,fill=#1!10,rounded corners=2pt,font=\ttfamily,
+    minimum height=7mm,inner sep=3pt},
+  tok/.default=tokc,
+  lay/.style={draw=#1!70!black,fill=#1!8,rounded corners=3pt,align=center,
+    minimum height=8mm,minimum width=22mm,inner sep=3pt},
+  lay/.default=black,
+  neu/.style={circle,draw=black!70,minimum size=5.5mm,inner sep=0pt,font=\small},
+  ar/.style={->,thick,#1},
+  ar/.default=black!80,
+  op/.style={circle,draw,inner sep=1pt,minimum size=6mm,font=\small},
+  lab/.style={font=\small,align=center},
+}
+
+% -------------------------------------------------
+% Beamer look (same as the PINN and CNN slides)
+% -------------------------------------------------
+\usetheme{default}
+\usefonttheme[onlymath]{serif}
+\setbeamertemplate{navigation symbols}{}
+\setbeamersize{text margin left=8mm,text margin right=8mm}
+\setbeamercolor{structure}{fg=deepblue}
+\setbeamercolor{frametitle}{fg=deepblue}
+\setbeamercolor{title}{fg=deepblue}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{frametitle}{%
+  \vskip3mm
+  {\usebeamerfont{frametitle}\usebeamercolor[fg]{frametitle}\insertframetitle\par}%
+  \vskip1mm
+  {\color{deepblue!45}\hrule height 0.6pt}%
+  \vskip1mm}
+\setbeamertemplate{footline}{%
+  \hbox to\paperwidth{%
+    \hspace*{8mm}{\color{black!45}\scriptsize \insertshorttitle
+      \ifx\insertsectionhead\empty\else\ \ $\cdot$\ \ \insertsectionhead\fi}%
+    \hfill{\color{black!45}\scriptsize\insertframenumber\,/\,\inserttotalframenumber}%
+    \hspace*{8mm}}%
+  \vskip2.5mm}
+\setbeamertemplate{title page}{%
+  \vfill
+  \begin{center}
+  {\color{deepblue}\Huge\bfseries\inserttitle\par}
+  \vskip3mm
+  {\color{deepblue!60}\rule{9cm}{0.8pt}\par}
+  \vskip3mm
+  {\large\insertsubtitle\par}
+  \vskip8mm
+  {\normalsize\insertdate\par}
+  \end{center}
+  \vfill}
+\AtBeginSection[]{%
+  \begin{frame}
+  \vfill
+  \centering
+  {\color{deepblue!55}\Large\bfseries \insertsectionnumber\par}
+  \vskip2mm
+  {\color{deepblue}\LARGE\bfseries\insertsectionhead\par}
+  \vskip3mm
+  {\color{deepblue!50}\rule{7cm}{0.8pt}\par}
+  \vfill
+  \end{frame}}
+\setlength{\leftmargini}{1.2em}
+\setlength{\leftmarginii}{1.1em}
+% numbered sections in the table of contents. The decks of weeks 2 and 3 start at
+% section 5 and 9 like the notes: \setcounter{section}{4} before the first \section,
+% and \tableofcontents[firstsection=-3] (week 3: -7) so that the list shows 5-8 (9-11).
+\setbeamertemplate{section in toc}[sections numbered]
+
+% -------------------------------------------------
+% Boxes (same colors as the notes). The title is braced, so it may contain commas.
+% -------------------------------------------------
+\newtcolorbox{keybox}[1][]{colback=softblue,colframe=deepblue,boxrule=0.7pt,arc=2mm,
+  title={#1},fonttitle=\bfseries\small,left=2mm,right=2mm,top=1mm,bottom=1mm,
+  toptitle=0.5mm,bottomtitle=0.5mm}
+\newtcolorbox{thinkbox}[1][]{colback=softyellow,colframe=orange!70!black,boxrule=0.6pt,
+  arc=2mm,title={#1},fonttitle=\bfseries\small,left=2mm,right=2mm,top=1mm,bottom=1mm,
+  toptitle=0.5mm,bottomtitle=0.5mm}
+\newtcolorbox{remarkbox}[1][]{colback=softgray,colframe=black!45,boxrule=0.5pt,arc=2mm,
+  title={#1},fonttitle=\bfseries\small,left=2mm,right=2mm,top=1mm,bottom=1mm,
+  toptitle=0.5mm,bottomtitle=0.5mm}
+\newtcolorbox{mlbox}[1][]{colback=softgreen,colframe=green!45!black,boxrule=0.6pt,
+  arc=2mm,title={#1},fonttitle=\bfseries\small,left=2mm,right=2mm,top=1mm,bottom=1mm,
+  toptitle=0.5mm,bottomtitle=0.5mm}
+
+% -------------------------------------------------
+% Code style
+% -------------------------------------------------
+\lstdefinestyle{pythonstyle}{
+  language=Python,
+  backgroundcolor=\color{codegray},
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\bfseries\color{deepblue},
+  commentstyle=\itshape\color{black!55},
+  stringstyle=\color{black!75},
+  numbers=none,
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  showstringspaces=false,
+  tabsize=4,
+  columns=fullflexible,
+  keepspaces=true,
+  aboveskip=1mm,
+  belowskip=1mm
+}
+\lstset{style=pythonstyle}
+
+% -------------------------------------------------
+% Math commands (same as the notes)
+% -------------------------------------------------
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\T}{^{\mathsf T}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\softmax}{\operatorname{softmax}}
+\newcommand{\w}[1]{\texttt{#1}}
+
+% -------------------------------------------------
+% Figures
+% -------------------------------------------------
+% one-line caption under a figure
+\newcommand{\figcap}[1]{\par\vskip1mm{\centering\footnotesize\color{black!70}#1\par}}
+% TikZ figure of the notes, shrunk to fit: \sfig[max height]{file name in tikz/}
+\newcommand{\sfig}[2][5.4cm]{%
+  \par{\centering
+  \begin{adjustbox}{max width=\linewidth,max totalheight=#1}\input{tikz/#2}\end{adjustbox}
+  \par}}
+% picture from figures/, fit into the given height: \pfig[max height]{file}
+\newcommand{\pfig}[2][5.4cm]{%
+  \par{\centering
+  \includegraphics[width=\linewidth,height=#1,keepaspectratio]{#2}\par}}

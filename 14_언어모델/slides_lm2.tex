@@ -1,0 +1,1472 @@
+% !TeX program = xelatex
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{slides_preamble}
+\title[자연어 처리와 언어모델 2주차]{자연어 처리와 언어모델}
+\subtitle{2주차 \texorpdfstring{$\cdot$}{-} 문장을 다루는 신경망: RNN}
+\date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
+\begin{document}
+\begin{frame}[plain]\titlepage\end{frame}
+
+\begin{frame}{지난주 복습: 단어를 벡터로}
+\begin{itemize}
+\item 단어의 의미는 주변 단어 (맥락)로 정해진다 (분포 가설)
+\item 통계 기반: 동시발생 행렬을 세고, PPMI로 흔한 단어의 영향을 줄이고, SVD로 차원을 줄인다
+\item word2vec (CBOW): 맥락으로 가운데 단어를 맞히도록 학습하면 $W_{\text{in}}$의 행이 단어 벡터
+\item 큰 어휘: Embedding 층 (행 꺼내기)과 네거티브 샘플링 (정답 하나와 오답 몇 개의 이진 분류)
+\item CBOW는 맥락의 단어 벡터를 \textbf{평균}하므로 맥락 안의 순서를 보지 못한다
+\end{itemize}
+\vskip2mm
+\begin{keybox}[남은 질문]
+단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까?
+\end{keybox}
+\end{frame}
+
+\begin{frame}{이번 주의 질문}
+\begin{keybox}[문장을 어떻게 다룰까]
+\begin{itemize}
+\item 문장은 길이가 제각각이고, \textbf{순서}가 뜻을 정한다:
+\w{dog bites man}과 \w{man bites dog}은 같은 단어들로 되어 있지만 뜻이 다르다
+\item 단어 벡터들을 평균하면 순서가 사라진다
+\item 앞의 단어를 기억하면서 한 단어씩 읽는 신경망이 필요하다
+\end{itemize}
+\end{keybox}
+\vskip3mm
+이번 주의 흐름:
+\vskip1mm
+\centering
+언어모델 (다음 단어 맞히기) $\to$ RNN $\to$ LSTM $\to$ 문장 생성과 seq2seq
+\end{frame}
+
+\begin{frame}{2주차 학습목표}
+\begin{enumerate}
+\item 언어모델: 앞의 단어들로 다음 단어의 확률을 계산하는 모델과 그 성능 (퍼플렉서티)
+\item RNN의 은닉 상태가 앞의 문맥을 요약하는 방법과 시간 방향의 역전파 (Truncated BPTT)
+\item RNN에서 기울기가 사라지거나 폭발하는 이유와 gradient clipping
+\item LSTM의 기억 셀과 세 게이트가 각각 왜 필요한지, 왜 기울기가 잘 전달되는지
+\item 언어모델로 문장 만들기: temperature, top-k, top-p
+\item seq2seq (Encoder와 Decoder)와 덧셈 문제에서의 두 가지 개선 (입력 뒤집기, 엿보기)
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{목차}
+% beamer numbers the sections of the toc 1, 2, ...; firstsection=-3 shifts them to 5-8 as in the notes
+\tableofcontents[firstsection=-3]
+\end{frame}
+
+% =================================================
+\setcounter{section}{4}
+\section{언어모델}
+% =================================================
+
+\begin{frame}{다음 단어의 확률}
+1주차의 CBOW는 앞뒤의 단어로 \textbf{가운데} 단어를 맞혔다.
+이제 \textbf{앞의 단어들만} 보고 \textbf{다음} 단어를 맞힌다:
+\[
+P(w_t\mid w_1,w_2,\dots,w_{t-1})
+\]
+\sfig[3.4cm]{p_next}
+\figcap{앞의 단어들 전체를 맥락으로 다음 단어의 확률을 계산한다}
+\end{frame}
+
+\begin{frame}{언어모델: 단어 열에 확률을 준다}
+확률의 곱셈 법칙에 의해
+\[
+P(w_1,\dots,w_m)=P(w_1)\,P(w_2\mid w_1)\,P(w_3\mid w_1,w_2)\cdots P(w_m\mid w_1,\dots,w_{m-1})
+\]
+이므로, 다음 단어의 확률을 알면 문장 전체의 확률도 계산할 수 있다.
+단어 열에 확률을 주는 모델을 \textbf{언어모델}이라 한다.
+\vskip3mm
+\begin{itemize}
+\item 문장이 얼마나 자연스러운지 평가한다:
+음성 인식이나 번역에서 후보 문장 중 자연스러운 것을 고른다
+\item 다음 단어를 하나 뽑아 붙이고 다시 다음 단어를 뽑으면 \textbf{문장을 생성}한다 (8절)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{앞의 단어를 모두 보아야 한다}
+\sfig[2.0cm]{tom}
+\figcap{빈칸을 맞히려면 $18$단어 앞의 \w{Tom}을 기억해야 한다}
+\vskip3mm
+CBOW의 맥락을 왼쪽 몇 단어로 바꾸면 언어모델이 된다. 그러나
+\begin{itemize}
+\item 맥락의 길이가 고정된다. $20$단어로 늘리면 가중치도 그만큼 늘어난다
+\item 맥락의 단어 벡터를 \textbf{평균}하므로 단어의 순서를 잃는다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+\textbf{길이에 제한이 없고 순서를 기억하는} 모델이 필요하다. 그것이 RNN이다.
+\end{keybox}
+\end{frame}
+
+% =================================================
+\section{RNN}
+% =================================================
+
+\begin{frame}{순환하는 신경망}
+\textbf{RNN} (recurrent neural network, 순환 신경망):
+한 층의 출력이 다음 시각에 다시 자기 입력으로 들어가는 고리를 가진 신경망
+\sfig[4.4cm]{rnn_loop}
+\figcap{왼쪽: 출력 $\vect h_t$는 위의 Affine으로 가고, 다음 시각에 $\vect h_{t-1}$로 다시 들어온다.
+오른쪽: 고리를 시간 방향으로 펼친 모습}
+\vskip1mm
+펼치면 같은 층들이 시각마다 한 번씩 쓰이는 긴 신경망이 된다.
+\end{frame}
+
+\begin{frame}{RNN 계층의 계산}
+시각 $t$에 단어 벡터 $\vect x_t$가 들어오면, 바로 전 시각의 $\vect h_{t-1}$과 함께 계산한다:
+\[
+\vect h_t=\tanh\big(\vect h_{t-1}W_h+\vect x_tW_x+\vect b\big),\qquad
+\vect y_t=\softmax\big(\vect h_tW_{\text{out}}+\vect b_{\text{out}}\big)
+\]
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+\item $W_x$는 입력을, $W_h$는 이전 은닉 상태를 변환한다.
+$W_{\text{out}}$은 Affine 층의 가중치
+\item \textbf{모든 시각에 같은 가중치}를 쓴다
+\item $\vect h_t$는 두 곳으로 간다: 위의 Affine과 softmax (그 시각의 출력 $\vect y_t$),
+그리고 다음 시각의 RNN 계층
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\sfig[3.4cm]{rnn_cell}
+\figcap{RNN 계층 하나의 계산 그래프}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{은닉 상태: 지금까지 읽은 단어의 요약}
+$\vect h_t$를 \textbf{은닉 상태}라 한다. 한 단어를 읽을 때마다 갱신된다.
+\vskip1mm
+\begin{itemize}
+\item \textbf{은닉}은 데이터에 나타나지 않는다는 뜻이다.
+입력 (단어)과 정답 (다음 단어)은 데이터에 있지만, $\vect h_t$에 무엇을 담을지는 아무도 정해 주지 않는다.
+다음 단어를 잘 맞히도록 학습하면서 $W_h$, $W_x$가 정한다 (MLP의 은닉층 출력과 같다)
+\item \textbf{크기는 고정}이다 (\texttt{rnnlm\_ptb.py}에서 $100$차원).
+$3$단어를 읽었든 $300$단어를 읽었든 $100$개의 숫자로 요약해야 하므로,
+무엇을 남기고 무엇을 버릴지가 중요하다 (7절과 3주차의 동기)
+\item \w{Tom} 문제를 풀려면 \w{Tom}의 정보가 $18$번의 갱신을 거치는 동안
+$\vect h$ 안에 남아 있어야 한다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{CBOW와 비교하기}
+앞의 두 단어로 다음 단어를 맞힌다면
+\[
+\text{CBOW: }\ \vect h=\tfrac12(\vect x_{t-1}+\vect x_t),\qquad
+\text{RNN: }\ \vect h_t=\tanh\big(\vect h_{t-1}W_h+\vect x_tW_x+\vect b\big)
+\]
+두 경우 모두 $\vect h$에 Affine과 softmax를 붙여 다음 단어의 확률을 얻는다.
+\vskip2mm
+{\small
+\begin{tabular}{@{}lp{40mm}p{70mm}@{}}
+\toprule
+& CBOW (앞의 두 단어) & RNN \\
+\midrule
+보는 단어 & 정해진 개수 ($2$개) & 앞의 모든 단어 \\
+합치는 방법 & 평균 (모든 단어에 $1/2$) &
+$\vect x_t$는 $W_x$로, 앞 문맥 $\vect h_{t-1}$은 $W_h$로 변환해 더하고 $\tanh$ \\
+단어의 순서 & 잃는다 (\w{a b}와 \w{b a}가 같다) &
+남는다. 먼 단어일수록 $W_h$와 $\tanh$를 더 여러 번 거친다 \\
+\bottomrule
+\end{tabular}}
+\end{frame}
+
+\begin{frame}{한 번 펼쳐 보면}
+\[
+\vect h_t=\tanh\Big(\tanh\big(\vect h_{t-2}W_h+\vect x_{t-1}W_x+\vect b\big)W_h+\vect x_tW_x+\vect b\Big)
+\]
+\begin{itemize}
+\item 단어마다 거치는 변환이 다르다.
+같은 단어라도 위치에 따라 $\vect h_t$에 주는 영향이 다르다
+\item 단순한 가중합이 아니다.
+각 단어의 영향은 학습된 $W_h$, $W_x$와 단어들의 값에 따라 정해진다
+\item 앞의 모든 문맥을 벡터 하나로 들고 다니기 위해 만든 것이 은닉 상태이다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+$\vect h_t$를 구하려면 $\vect h_{t-1}$이 먼저 있어야 하므로,
+RNN은 단어를 \textbf{처음부터 한 번에 하나씩} 순서대로 처리한다.
+처음 상태 $\vect h_0$은 보통 영벡터이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{RNN은 언제 왜 만들어졌나}
+MLP, CNN은 \textbf{정해진 크기}의 입력을 받는다.
+문장, 음성, 주가는 길이가 제각각이고 순서가 의미를 가진다.
+입력을 하나씩 받으면서 지금까지 본 것을 \textbf{상태}로 기억하는 신경망이 RNN이다.
+\vskip1mm
+{\small
+\begin{tabular}{@{}lp{116mm}@{}}
+\toprule
+1986 & Rumelhart, Hinton, Williams: 역전파. 순환하는 신경망도 시간 방향으로 펼쳐 학습할 수 있다 \\
+1990 & Elman: 은닉 상태를 다시 입력으로 넣는 RNN. 그 실험이 \textbf{다음 단어 맞히기}였다. Werbos: BPTT 정리 \\
+1991--97 & Hochreiter, Bengio 등: 긴 열에서 기울기가 사라지는 문제. Hochreiter, Schmidhuber: LSTM (1997) \\
+2010년대 & RNN 언어모델 (Mikolov, 2010), LSTM으로 음성 인식 (2013)과 번역 (seq2seq, 2014) \\
+2017 이후 & 언어 처리는 Transformer (3주차)로. RNN은 시계열 예측, 실시간 처리에 쓰인다 \\
+\bottomrule
+\end{tabular}}
+\vskip1mm
+출력을 받는 위치는 쓰임에 따라 다르다:
+시각마다 (언어모델), 마지막 상태만 (문장 분류), 마지막 상태를 다른 RNN에 (번역, 8절).
+\end{frame}
+
+\begin{frame}{시간 방향의 역전파 (BPTT)}
+펼친 RNN은 그냥 긴 신경망이므로 역전파도 똑같이 한다:
+\textbf{BPTT} (backpropagation through time)
+\sfig[3.8cm]{bptt}
+\figcap{순전파 (검은색)에서 $\vect h_t$는 위의 loss와 다음 시각 두 곳으로 간다.
+역전파 (빨간색)에서는 두 곳에서 온 gradient가 $+$에서 더해진다}
+\vskip1mm
+각 시각의 위 상자는 Affine, softmax, cross-entropy를 묶은 것으로 $\loss_t$를 낸다.
+전체 loss는 $\loss=\frac1T\sum_t\loss_t$.
+\end{frame}
+
+\begin{frame}{두 곳에서 온 gradient를 더한다}
+순전파에서 $\vect h_t$는 위의 Affine (loss $\loss_t$)과 다음 시각의 RNN 계층, \textbf{두 곳}에 쓰인다.
+한 값이 두 곳으로 갈라지면 역전파에서는 두 곳에서 온 gradient를 더한다:
+\[
+\frac{\partial\loss}{\partial\vect h_t}
+=\underbrace{\frac1T\frac{\partial\loss_t}{\partial\vect h_t}}_{\text{위의 loss에서}}
++\underbrace{\Big(\frac{\partial\loss}{\partial\vect h_{t+1}}\odot\big(1-\vect h_{t+1}^2\big)\Big)W_h\T}_{\text{다음 시각에서}}
+\]
+\begin{itemize}
+\item 둘째 항은 $\vect h_{t+1}=\tanh(\vect h_tW_h+\cdots)$를 거슬러 온 것.
+$\odot$는 원소별 곱, $1-\vect h_{t+1}^2$은 $\tanh$의 미분
+\item 마지막 시각 $T$에는 첫째 항만 있다. 그래서 역전파는 $t=T,\,T-1,\dots,1$의 순서로 진행한다
+\item $W_x$, $W_h$, $\vect b$는 모든 시각이 함께 쓰므로, gradient는 시각마다 구한 것의 합이다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Truncated BPTT: 블록씩 끊어서 학습하기}
+문장이 길면 펼친 신경망도 길어진다. 말뭉치 전체를 하나로 펼치면 계산량과 메모리를 감당할 수 없다.
+그래서 시간 방향으로 $T$단어 (예: $35$단어)씩 끊어 블록을 만들고, 블록 하나씩 학습한다.
+\sfig[4.2cm]{tbptt}
+\figcap{블록마다 $T$개 시각을 순전파하고 그 안에서만 역전파한 뒤 가중치를 한 번 갱신한다.
+다음 블록은 $\vect h_T$의 값만 받는다}
+\end{frame}
+
+\begin{frame}{블록 학습의 순서}
+\begin{enumerate}
+\item 블록 1: $\vect x_1,\dots,\vect x_T$를 순전파해 $\loss_1,\dots,\loss_T$를 구한다.
+블록 안에서만 역전파하고 가중치를 한 번 갱신한다
+\item 블록 2: 블록 1의 마지막 은닉 상태 $\vect h_T$를 시작 상태로 받아
+$\vect x_{T+1},\dots,\vect x_{2T}$를 순전파하고, 역시 블록 안에서만 역전파해 갱신한다.
+$\vect h_T$는 \textbf{값만} 받을 뿐, 블록 1로 gradient를 보내지 않는다
+\item 블록 3, 4, \dots도 같은 방법으로 차례로 학습한다
+\end{enumerate}
+\vskip1mm
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{keybox}[순전파는 끊지 않는다]
+문맥이 블록을 넘어 이어진다.
+\end{keybox}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{keybox}[역전파는 블록 안에서만]
+계산량과 메모리가 $T$에 비례한다.
+대신 $T$단어보다 먼 관계는 gradient로 직접 배우지 못한다.
+\end{keybox}
+\end{column}
+\end{columns}
+\vskip1mm
+PyTorch에서는 다음 블록에 넘기는 은닉 상태에 \texttt{.detach()}를 쓴다.
+값은 그대로 두고 계산 그래프만 끊는다.
+\end{frame}
+
+\begin{frame}{미니배치로 읽기}
+위의 블록 학습은 긴 단어 열 하나를 처음부터 차례로 읽는다.
+GPU에서 여러 열을 동시에 계산하려면, 말뭉치를 $B$조각으로 잘라 $B$개의 행으로 놓고
+각 행을 $T$단어씩 나란히 읽는다.
+\sfig[4.8cm]{batchify}
+\figcap{말뭉치를 $B=20$개 행으로 자르고, 각 행을 $T=35$단어씩 나란히 읽는다. 숫자는 PTB에서 단어의 위치}
+\end{frame}
+
+\begin{frame}{미니배치 사이에 은닉 상태를 넘긴다}
+\begin{itemize}
+\item 각 행이 블록 학습을 따로 한다. 같은 RNN 계층이 $B$개 행을 동시에 계산하고,
+은닉 상태도 행마다 하나씩, $B$개이다
+\item $(B,T)$ 크기의 조각 하나가 미니배치 하나이다.
+정답은 같은 조각을 오른쪽으로 한 단어 민 것이고, loss는 $B\times T$개 위치의 cross-entropy의 평균이다
+\item 한 미니배치를 다 읽은 뒤의 은닉 상태 (행마다 하나씩, $B$개)를
+다음 미니배치의 \textbf{같은 행}의 시작 상태로 넘긴다.
+각 행은 말뭉치의 이어진 부분이므로, 행마다 문맥이 이어진다
+\end{itemize}
+\vskip2mm
+\begin{keybox}[{{\texttt{rnnlm\_ptb.py}: $B=20$, $T=35$}}]
+PTB 학습 데이터 ($929{,}589$단어)는 $46{,}479$단어짜리 행 $20$개가 된다 (남는 $9$단어는 버린다).
+한 epoch은 $\lceil46{,}479/35\rceil=1{,}328$번의 갱신이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{RNN 언어모델}
+\sfig[4.6cm]{rnnlm}
+\figcap{\w{you say goodbye and ...}를 처리하는 RNN 언어모델. 각 시각의 정답은 다음 단어이다}
+\vskip1mm
+각 시각에 단어를 Embedding으로 벡터로 바꿔 RNN에 넣고,
+RNN의 출력에 Affine (Linear) 층과 softmax를 붙여 다음 단어의 확률을 낸다.
+\end{frame}
+
+\begin{frame}{RNN 언어모델이 하는 일}
+\begin{itemize}
+\item \textbf{입력}은 단어 ID이다. Embedding 층이 ID에 해당하는 행을 꺼내 $\vect x_t$로 만든다.
+원핫 벡터에 행렬을 곱하는 것과 계산은 같고 더 빠를 뿐이다
+\item \textbf{시각마다 예측한다}. 첫 시각에는 \w{you} 하나만 보고,
+둘째 시각에는 \w{you say}를 요약한 $\vect h_2$로 예측한다.
+시각 $t$의 예측은 $1$번째부터 $t$번째 단어까지만 본다
+\item 정답은 입력 단어열을 한 칸 민 것이다. loss는 모든 시각의 cross-entropy의 평균
+\item 은닉 상태가 앞의 단어들을 기억하므로, \w{say} 다음에 \w{goodbye}와 \w{hello} 중 무엇이 올지를
+그 앞의 단어들로 구별할 수 있다
+\end{itemize}
+\vskip2mm
+\begin{keybox}[$\vect h_t$는 단어가 아니다]
+Affine과 softmax를 붙여야 어휘 전체의 확률분포 (예: \w{say} $0.6$, \w{hello} $0.1$, \dots)가 나온다.
+다음 시각으로 넘어가는 것은 이 확률이 아니라 $\vect h_t$이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{학습할 때와 생성할 때}
+다음 시각의 입력 $\vect x_{t+1}$으로 무엇을 넣는지가 다르다.
+\vskip2mm
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{keybox}[학습: teacher forcing]
+정답 문장이 있으므로 정답 단어를 그대로 넣는다.
+시각 $1$의 예측이 틀렸어도 시각 $2$에는 정답 \w{say}가 들어간다.
+그래서 $T$개 시각의 예측이 한꺼번에 나오고, 모두 loss에 들어간다.
+\end{keybox}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{keybox}[생성]
+정답이 없으므로 확률분포에서 단어를 하나 뽑아 다음 입력으로 넣고, 다시 다음 단어를 뽑는다.
+끝을 나타내는 기호가 나오거나 정한 길이가 될 때까지 반복한다 (8절).
+\end{keybox}
+\end{column}
+\end{columns}
+\vskip3mm
+한 번에 예측하는 것은 다음 단어 하나이지만, 뽑은 단어를 다시 넣는 반복으로 문장이 만들어진다.
+GPT도 같은 방식으로 한 토큰씩 생성한다 (3주차).
+\end{frame}
+
+\begin{frame}[fragile]{PyTorch: RNN 언어모델 (\texttt{rnnlm\_ptb.py}의 2번 셀)}
+\begin{lstlisting}
+class RNNLM(nn.Module):
+    def __init__(self, V, D=100, H=100, cell="lstm"):
+        super().__init__()
+        layer = nn.LSTM if cell == "lstm" else nn.RNN
+        self.embed = nn.Embedding(V, D)                  # word ID -> vector
+        self.rnn = layer(D, H, batch_first=True)
+        self.out = nn.Linear(H, V)
+
+    def forward(self, x, state=None):                    # x: (B, T) word IDs
+        h, state = self.rnn(self.embed(x), state)        # h: (B, T, H), all hidden states
+        return self.out(h), state                        # (B, T, V): scores of the next word
+\end{lstlisting}
+\begin{itemize}
+\item 세 층을 차례로 쓴다. \texttt{nn.RNN}은 $T$개 시각을 한꺼번에 받아 모든 시각의 은닉 상태를 낸다.
+호출이 한 번일 뿐, 안에서는 시각 순서대로 계산한다
+\item \texttt{cell}로 RNN과 LSTM (7절) 중 하나를 고른다
+\item \texttt{state}는 마지막 시각의 은닉 상태. 받아 두었다가 다음 미니배치를 넣을 때 함께 넘긴다
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{PyTorch: 한 epoch의 학습 (3번 셀)}
+\begin{lstlisting}
+state = None                             # no state yet: the layer starts from zeros
+for k in range(0, train.size(1) - 1, T):
+    x, y = train[:, k:k + T], train[:, k + 1:k + 1 + T]      # y: x shifted by one word
+    x = x[:, :y.size(1)]
+    if state is not None:
+        state = detach(state)            # truncated BPTT: keep the values, cut the graph
+    logits, state = model(x, state)      # starts from the last state of the previous block
+    loss = F.cross_entropy(logits.reshape(-1, V), y.reshape(-1))
+    opt.zero_grad()
+    loss.backward()
+    nn.utils.clip_grad_norm_(model.parameters(), 1.0)    # gradient clipping
+    opt.step()
+\end{lstlisting}
+\begin{itemize}
+\item \texttt{train}은 말뭉치를 $(20,\ 46479)$ 크기로 놓은 것.
+앞 블록의 상태를 이어받으므로 블록의 첫 단어도 앞의 문맥을 안다
+(상태가 $\vect 0$에서 시작하는 것은 말뭉치의 맨 처음뿐)
+\item \texttt{detach}가 Truncated BPTT의 ``역전파만 끊기''.
+\texttt{clip\_grad\_norm\_}은 7절에서 설명한다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Embedding 층과 word2vec}
+RNN 언어모델의 첫 층인 Embedding은 1주차의 $W_{\text{in}}$과 같은 ``단어 ID $\to$ 벡터'' 표이다.
+이 표를 정하는 방법은 두 가지이다.
+\vskip1mm
+\begin{itemize}
+\item word2vec으로 미리 학습한 단어 벡터를 초기값으로 넣는다.
+학습 데이터가 적은 과제에서, 큰 말뭉치에서 얻은 단어의 지식을 빌려 쓰는 방법이다
+\item 무작위 값에서 시작해 RNN과 함께 학습한다.
+\texttt{rnnlm\_ptb.py}와 지금의 큰 언어모델이 쓰는 방법이다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+RNN 언어모델도 ``앞 단어로 다음 단어 맞히기''라는 예측을 학습한다.
+그래서 word2vec과 같은 원리로 Embedding의 행이 단어의 분산 표현이 된다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{앞의 문맥이 섞이는데도 왜 단어의 표현인가}
+$\vect h_t=\tanh\big(\vect h_{t-1}W_h+\vect x_tW_x+\vect b\big)$에서
+``어떤 단어인가''는 $\vect x_t$ ($W_{\text{in}}$의 행)로만 들어온다.
+$W_h$, $W_x$, $\vect b$는 모든 단어가 함께 쓰고, $\vect h_{t-1}$은 문맥이다.
+\begin{itemize}
+\item $\vect h_{t-1}$은 $\vect x_t$를 바꾸지 않고 옆에 더해질 뿐이다.
+문맥이 섞이는 것은 $\vect h_t$이고, $W_{\text{in}}$의 행은 문맥과 상관없이 같다
+\item 단어가 어떤 문맥에 나오든 그 행에 gradient가 온다.
+비슷한 자리에 쓰이고 뒤에 비슷한 단어가 오는 단어 (\w{cat}과 \w{dog})는 행이 서로 가까워진다
+\end{itemize}
+\vskip1mm
+\begin{keybox}
+$W_{\text{in}}$의 행은 문맥과 상관없는 \textbf{고정된 표현},
+$\vect h_t$는 문맥 속에서 읽은 \textbf{문맥 표현}이다 (3주차).
+\end{keybox}
+\figcap{Mikolov 등 (2013)은 RNN 언어모델의 이 행들로
+\w{king} $-$ \w{man} $+$ \w{woman} $\approx$ \w{queen} 같은 유추가 됨을 보였고, 이것이 word2vec으로 이어졌다}
+\end{frame}
+
+\begin{frame}{퍼플렉서티: 언어모델의 성능}
+\[
+\text{perplexity}=\exp(\loss),\qquad \loss=-\frac1N\sum_{n=1}^N\log P(\text{정답}_n)
+\]
+$N$은 검증용 (또는 테스트용) 글의 단어 수,
+$P(\text{정답}_n)$은 $n$번째 위치에서 모델이 실제 다음 단어에 준 확률이다.
+\vskip2mm
+\textbf{$\loss$는 학습에 쓴 cross-entropy loss이다.}
+\begin{itemize}
+\item 정답이 원핫 벡터 $\vect t$, 출력이 $\vect y$이면 $-\sum_kt_k\log y_k=-\log P(\text{정답})$
+\item 그것을 학습에 쓰지 않은 글의 $N$개 위치에서 평균한 것이다
+\item $0<P\le1$이므로 $\loss\ge0$, 퍼플렉서티 $\ge1$.
+모든 정답에 확률 $1$을 주어야 퍼플렉서티 $1$이 된다
+\item $\exp$는 증가함수이므로 $\loss$가 작을수록 퍼플렉서티도 작다. 작을수록 좋은 모델
+\end{itemize}
+\end{frame}
+
+\begin{frame}{왜 $\exp$를 취하는가 (1): 확률의 역수의 기하평균}
+$\loss$를 그대로 써도 모델의 순위는 같다. $\exp$는 숫자에 뜻을 주려고 취한다.
+로그의 평균에 $\exp$를 취하면 기하평균이 된다:
+\[
+\exp(\loss)=\Big(\prod_{n=1}^N\frac{1}{P(\text{정답}_n)}\Big)^{1/N}
+\]
+\pfig[3.3cm]{figures/perplexity_example.png}
+\figcap{\w{you} 다음에 \w{say}가 정답일 때. 모델 1은 $0.8$, 모델 2는 $0.2$의 확률을 주었다.
+정답의 확률이 항상 $0.8$이면 퍼플렉서티는 $1/0.8=1.25$, 항상 $0.2$이면 $5$}
+\end{frame}
+
+\begin{frame}{왜 $\exp$를 취하는가 (2): 후보의 수}
+\begin{itemize}
+\item 모델이 매번 정답을 포함한 $k$개 단어에 똑같이 $1/k$씩 주면 퍼플렉서티는 정확히 $k$이다
+\item 그래서 ``모델이 매 시각 몇 개의 후보 사이에서 망설이는 것과 같은가''로 읽는다.
+아무것도 모르면 (모든 단어에 $1/V$) 퍼플렉서티는 $V$이다
+\item $\loss=4.94$라고만 하면 감이 오지 않지만, $e^{4.94}\approx140$은
+``후보 $140$개 중 하나를 고르는 만큼 헷갈린다''이다
+\end{itemize}
+\vskip2mm
+\textbf{왜 기하평균인가.} 글 전체의 확률은 각 단어의 확률의 곱
+$P(\text{글})=\prod_nP(\text{정답}_n)$이므로
+\[
+\text{perplexity}=P(\text{글})^{-1/N}
+\]
+모델이 글 전체에 준 확률을 단어 하나당으로 바꾸어 뒤집은 값이다.
+두 단어에 $0.8$, $0.2$를 주었으면 $P(\text{글})=0.16$, 퍼플렉서티는 $0.16^{-1/2}=2.5$
+(역수 $1.25$와 $5$의 산술평균 $3.125$와 다르다).
+\end{frame}
+
+\begin{frame}{퍼플렉서티는 어디에서 온 개념인가}
+정보이론이다. Shannon (1948)은 불확실성을 엔트로피로 정의했다:
+\[
+H=-\sum_xp(x)\log_2p(x)\qquad(\text{단위: bit})
+\]
+\begin{itemize}
+\item $k$개가 똑같이 나올 수 있으면 $H=\log_2k$이다.
+거꾸로 $2^H$는 ``같은 불확실성을 가진 균등분포의 경우의 수''이다
+\item 퍼플렉서티는 이 $2^H$를 실제 글과 모델의 cross-entropy로 잰 것이다.
+로그의 밑을 $2$로 하면 $2^{\loss}$, $e$로 하면 $e^{\loss}$로, 값은 같다
+\item 1970년대 음성 인식 연구에서 Jelinek 등이
+``다음 단어를 맞히는 과제가 얼마나 어려운가''를 재는 척도로 이 이름을 붙였다
+\end{itemize}
+\vskip1mm
+\begin{remarkbox}
+퍼플렉서티는 같은 어휘 (같은 토큰 단위)로 잴 때만 비교할 수 있다.
+어휘의 크기나 단위 (단어, 토큰)에 따라 같은 모델도 값이 달라진다.
+\end{remarkbox}
+\end{frame}
+
+% =================================================
+\section{LSTM: 오래 기억하는 RNN}
+% =================================================
+
+\begin{frame}{\w{Tom}을 맞히려면 gradient가 멀리 가야 한다}
+\sfig[4.0cm]{tom_grad}
+\figcap{정답 \w{Tom}의 gradient가 시간을 거슬러 앞의 단어까지 전달되어야 한다}
+\vskip2mm
+마지막 단어에서 계산한 loss의 gradient가 $18$단어 앞까지 전달되어야
+``\w{Tom}의 정보를 은닉 상태에 남겨 두라''는 학습 신호가 그 시각의 가중치에 닿는다.
+\end{frame}
+
+\begin{frame}{한 단계를 거슬러 갈 때마다 곱해지는 것}
+$\vect h_t=\tanh(\vect h_{t-1}W_h+\vect x_tW_x+\vect b)$를 역전파하면
+\[
+\frac{\partial\loss}{\partial\vect h_{t-1}}=\Big(\frac{\partial\loss}{\partial\vect h_t}\odot\big(1-\vect h_t^2\big)\Big)W_h\T
+\]
+$1-\vect h_t^2$은 $\tanh$의 미분 $\tanh'(a)=1-\tanh^2(a)$이다.
+$18$단어를 거슬러 가면 이 계산을 $18$번 반복하므로, $\tanh$의 미분과 $W_h\T$를 $18$번 곱하게 된다.
+\vskip1mm
+\begin{itemize}
+\item $\tanh$의 미분은 $1$ 이하이고, 입력이 $0$에서 멀어지면 $0$에 가깝다.
+여러 번 곱하면 gradient가 점점 작아진다
+\item 같은 행렬 $W_h\T$를 여러 번 곱한다. $W_h$의 특잇값이 모두 $1$보다 작으면
+gradient는 지수적으로 작아지고, $1$보다 큰 특잇값이 있으면 지수적으로 커질 수 있다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{$W_h\T$를 $20$번 곱하면}
+\pfig[4.6cm]{figures/rnn_grad_norm.png}
+\figcap{gradient에 $W_h\T$를 $20$번 곱할 때의 크기 (\texttt{figures\_extra.py}의 3번 셀).
+$W_h$가 회전행렬의 $1.3$배 (특잇값이 모두 $1.3$)이면 $20$번 뒤 $232.8$로 커지고 (왼쪽),
+$0.7$배이면 $0.001$로 작아진다 (오른쪽)}
+\vskip2mm
+\centering
+커지면 \textbf{기울기 폭발}, 작아지면 \textbf{기울기 소실}
+\end{frame}
+
+\begin{frame}{기울기 폭발: gradient clipping}
+gradient의 크기가 기준을 넘으면 줄인다.
+모든 가중치의 gradient를 이어 붙인 벡터를 $\vect g$, 기준을 $\theta$라 하면
+\[
+\|\vect g\|>\theta\ \text{이면}\quad \vect g\leftarrow\frac{\theta}{\|\vect g\|}\,\vect g
+\]
+방향은 그대로 두고 크기만 $\theta$로 줄인다.
+PyTorch: \texttt{nn.utils.clip\_grad\_norm\_}. \texttt{rnnlm\_ptb.py}는 $\theta=1$을 쓴다.
+\begin{thinkbox}[기울기 소실은 그렇게 해결되지 않는다]
+가중치의 gradient는 시각마다의 기여를 모두 더한 것인데, \textbf{먼 과거에서 오는 기여만} $0$에 가까워진다.
+loss는 여전히 줄지만, 가까운 몇 단어만 보고 맞히는 쪽으로만 학습된다.
+gradient 전체를 키워도 가까운 단어의 기여가 함께 커질 뿐이다.
+RNN의 \textbf{구조}를 바꿔야 한다. 그것이 LSTM이다.
+\end{thinkbox}
+\figcap{기울기 소실의 분석: Hochreiter (1991), Bengio 등 (1994). clipping: Mikolov (2012), Pascanu 등 (2013)}
+\end{frame}
+
+\begin{frame}{LSTM: 기억 셀이라는 통로를 하나 더}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.0cm]{lstm_c}
+\figcap{LSTM은 기억 셀 $\vect c$를 따로 가진다}
+\end{column}
+\begin{column}{0.47\textwidth}
+\textbf{LSTM} (long short-term memory)은 은닉 상태 $\vect h$ 외에
+\textbf{기억 셀} $\vect c$라는 통로를 하나 더 갖는다.
+\vskip2mm
+\begin{itemize}
+\item $\vect c$는 LSTM 계층 안에서만 다음 시각으로 전달된다
+\item 밖으로 나가는 출력은 여전히 $\vect h$이다
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{왜 통로가 하나 더 필요한가}
+RNN은 매 시각 $\vect h_t=\tanh(\cdots)$로 은닉 상태 전체를 \textbf{새로 계산}한다.
+\begin{itemize}
+\item 오래 남겨야 할 정보도 매번 $W_h$와 $\tanh$를 거치며 조금씩 변한다
+\item gradient도 그 길로만 돌아간다
+\end{itemize}
+\vskip2mm
+\begin{keybox}[기억 셀은 메모장처럼 다룬다]
+통째로 다시 쓰지 않고, 필요한 성분만
+\textbf{지우고} (forget), \textbf{적고} (input), 필요할 때 \textbf{읽어 낸다} (output).
+손대지 않은 성분은 그대로 다음 시각으로 넘어간다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{게이트: 얼마나 통과시킬까}
+LSTM의 핵심은 \textbf{게이트}이다.
+게이트는 정보를 ``얼마나'' 통과시킬지를 $0$과 $1$ 사이의 값으로 정한다 (수도꼭지를 얼마나 열지).
+\sfig[3.6cm]{gate}
+\figcap{게이트: 벡터의 성분마다 $0$--$1$ 사이의 값을 곱해 얼마나 통과시킬지 정한다}
+\vskip1mm
+열림 정도는 sigmoid로 만들고, 그 값도 학습으로 정해진다.
+\end{frame}
+
+\begin{frame}{부품을 하나씩 더하며 LSTM 만들기}
+단계마다 ``그 부품이 없으면 무엇이 곤란한가''를 먼저 보고, 그것을 해결하는 부품을 더한다.
+그림에서 빨간 점선이 그 단계에서 더한 부분이다.
+\vskip3mm
+\centering
+\begin{tabular}{@{}cll@{}}
+\toprule
+단계 & 더하는 부품 & 해결하는 문제 \\
+\midrule
+1 & 기억 셀 $\vect c$ & 오래 간직할 것을 담을 곳이 없다 \\
+2 & output 게이트 $\vect o$ & 기억한 것이 모두, 매 시각 출력된다 \\
+3 & forget 게이트 $\vect f$ & 기억을 지울 수 없다 \\
+4 & 새 기억 $\vect g$ & 지금 단어의 정보를 기억에 적을 수 없다 \\
+5 & input 게이트 $\vect i$ & 모든 단어의 내용이 쌓여 중요한 기억이 묻힌다 \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{1단계: 기억 셀 --- 오래 담아 두는 곳}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.8cm]{lstm_s1}
+\figcap{1단계: 기억 셀 $\vect c$만 둔다}
+\end{column}
+\begin{column}{0.47\textwidth}
+\small
+\begin{itemize}
+\item $\vect c_t$는 지금까지 읽은 내용 가운데 \textbf{오래 간직할 것}을 담는다.
+$\vect c_{t-1}$, $\vect x_t$, $\vect h_{t-1}$로 $\vect c_t$를 만든다.
+그 방법 (\w{update})은 뒤의 게이트들이 채운다
+\item 은닉 상태는 기억 셀에서 \textbf{읽어 낸 것}이다:
+\[
+\vect h_t=\tanh(\vect c_t)
+\]
+$\vect c_t$는 덧셈이 쌓여 커질 수 있으므로 $\tanh$로 $-1$과 $1$ 사이로 누른다
+\item $\vect h_t$는 RNN과 똑같이 위의 Affine 층과 다음 시각으로 간다.
+$\vect c_t$는 다음 시각의 LSTM으로만 간다
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{역할 나누기: 기억은 $\vect c$가 전담한다}
+RNN의 은닉 상태 $\vect h_t$는 두 가지 일을 한꺼번에 했다.
+\begin{itemize}
+\item \textbf{지금의 출력}: Affine 층이 $\vect h_t$로 다음 단어를 맞힌다
+\item \textbf{기억}: $\vect h_t$를 다음 시각으로 넘겨 앞의 문맥을 전한다
+\end{itemize}
+두 일은 서로 부딪친다. 다음 단어를 맞히려면 지금 필요한 정보가 $\vect h_t$에 드러나 있어야 하고,
+기억하려면 지금은 필요 없어도 나중에 필요한 정보 (\w{Tom})를 간직해야 한다.
+\vskip2mm
+\begin{keybox}[LSTM은 기억하는 일을 기억 셀 $\vect c$에 전담시킨다]
+$\vect c$는 정보를 오래 \textbf{보관}하는 곳이고, $\vect h$는 그 가운데 지금 쓰려고 \textbf{꺼낸 것}이다.
+$\vect h_{t-1}$도 다음 시각으로 가지만, 게이트와 새 내용을 계산할 때
+``직전에 무엇을 꺼내 썼는가''를 알려 주는 입력이다.
+\end{keybox}
+\figcap{$\vect c$의 경로에는 $W_h$도 $\tanh$도 없고 원소별 곱과 덧셈만 있다.
+그래서 손대지 않은 기억은 그대로 남고, gradient도 그 길로 먼 과거까지 전달된다 (뒤에서)}
+\end{frame}
+
+\begin{frame}{이름의 뜻: 오래 가는 단기 기억}
+이름의 단기 기억, 장기 기억은 인지심리학에서 사람의 기억을 나누는 말을 신경망 연구가 빌려 쓴 것이다.
+\vskip2mm
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+& 신경망에서 & 바뀌는 방식 \\
+\midrule
+단기 기억 & 활성값 & 입력에 따라 매번 바뀐다 \\
+장기 기억 & 가중치 & 학습으로 천천히 바뀌며 오래 남는다 \\
+\bottomrule
+\end{tabular}
+\vskip2mm
+\raggedright
+이 용어로 보면 $\vect h$와 $\vect c$는 \textbf{둘 다 단기 기억}이다.
+RNN에서는 단기 기억이 몇 단어 만에 흐려졌는데, LSTM은 단기 기억 $\vect c$가 오래 가게 만들었다.
+\vskip2mm
+\begin{keybox}
+long short-term memory: ``오래 가는 단기 기억''
+\end{keybox}
+\end{frame}
+
+\begin{frame}{빌린 것은 이름뿐: constant error carousel}
+구조는 사람의 기억을 흉내 내서 나온 것이 아니다.
+\begin{itemize}
+\item Hochreiter (1991)는 RNN의 기울기가 시간을 거슬러 가며 지수적으로 줄어드는 것을 분석했다
+\item 해결책으로 이전 값에 $1$을 곱해 그대로 넘기는 셀을 두었다 (Hochreiter \& Schmidhuber, 1997)
+\item 이 길에서는 오차가 줄지도 커지지도 않고 그대로 흐르므로 \textbf{constant error carousel}이라 불렀다
+\item 게이트는 그 셀에 정보가 아무 때나 들고 나지 않도록 입구와 출구에 붙인 것이다
+\end{itemize}
+\vskip2mm
+그래서 처음 LSTM의 기억 셀은
+\[
+\vect c_t=\vect c_{t-1}+\vect i\odot\vect g
+\]
+였다. forget 게이트는 2000년에 더해졌다 (뒤의 역사).
+\end{frame}
+
+\begin{frame}{2단계: output 게이트 --- 기억에서 무엇을 꺼낼까}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.8cm]{lstm_s2}
+\figcap{2단계: output 게이트 $\vect o$를 더한다}
+\end{column}
+\begin{column}{0.47\textwidth}
+\small
+\textbf{문제.} $\vect h_t=\tanh(\vect c_t)$이면 기억한 것이 \textbf{모두, 매 시각} 출력된다.
+``주어는 \w{Tom}''이라는 기억은 마지막 \w{to} 다음에서야 필요하다.
+그 사이 $18$단어 동안 다음 단어를 맞힐 때는 쓸모가 없고, 오히려 방해가 된다.
+\vskip3mm
+\textbf{해결.} 성분마다 얼마나 내보낼지 정하는 게이트 $\vect o$를 둔다:
+\[
+\vect o=\sigma(\vect x_tW_x^{(o)}+\vect h_{t-1}W_h^{(o)}+\vect b^{(o)})
+\]
+\[
+\vect h_t=\vect o\odot\tanh(\vect c_t)
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{output 게이트가 하는 일}
+\begin{itemize}
+\item $o_k\approx1$이면 $k$번째 기억을 그대로 내보내고, $o_k\approx0$이면 내보내지 않는다.
+중간 값이면 그만큼 줄여서 내보낸다
+\item $\vect o$는 지금 단어 $\vect x_t$와 직전 출력 $\vect h_{t-1}$로 계산한다.
+``지금 상황에서 어떤 기억이 쓸모 있는가''를 매 시각 다시 판단한다
+\item $\vect o$는 $\vect h_t$에만 곱하고 $\vect c_t$는 건드리지 않는다
+\end{itemize}
+\vskip3mm
+\begin{keybox}[내보내지 않는 것은 지우는 것이 아니다]
+$o_k\approx0$인 기억도 $\vect c$ 안에 그대로 남아 있다가, 필요한 시각에 $o_k$가 열리면 나온다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{3단계: forget 게이트 --- 무엇을 지울까}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.8cm]{lstm_s3}
+\figcap{3단계: forget 게이트 $\vect f$를 더한다}
+\end{column}
+\begin{column}{0.47\textwidth}
+\small
+\textbf{문제.} 기억은 언젠가 지워야 한다.
+새 문장이 시작되거나 이야기의 주어가 \w{Mary}로 바뀌면 ``주어는 \w{Tom}''은 더 이상 맞는 정보가 아니다.
+지우지 못하면 오래된 정보가 새 정보와 섞이고, 덧셈이 계속 쌓여 $\vect c$의 값도 커진다.
+\vskip3mm
+\textbf{해결.} 이전 기억 $\vect c_{t-1}$에 성분마다 남길 비율 $\vect f$를 곱한다:
+\[
+\vect f=\sigma(\vect x_tW_x^{(f)}+\vect h_{t-1}W_h^{(f)}+\vect b^{(f)})
+\]
+\[
+\vect c_t=\vect f\odot\vect c_{t-1}\quad(\text{이 단계까지})
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{forget 게이트가 하는 일}
+\begin{itemize}
+\item $f_k\approx1$이면 $k$번째 기억을 그대로 남기고, $f_k\approx0$이면 지운다.
+이름은 forget이지만 값은 ``남길 비율''이다. $1$이 ``잊지 마라''이다
+\item 성분마다, 시각마다 따로 정한다. 마침표나 새 주어를 읽은 시각에는
+주어를 담은 성분의 $f_k$가 닫히고, 다른 성분은 그대로 남을 수 있다
+\item $f_k$가 $0.9$ 정도로 계속 머물면 그 기억은 매 시각 $10\%$씩 서서히 흐려진다.
+얼마나 오래 기억할지도 학습으로 정해진다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{4단계: 새 기억 $\vect g$ --- 무엇을 적을까}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.8cm]{lstm_s4}
+\figcap{4단계: 새 기억 $\vect g$를 더한다}
+\end{column}
+\begin{column}{0.47\textwidth}
+\small
+\textbf{문제.} 지금까지의 LSTM은 기억을 남기거나 지울 수만 있다.
+지금 읽은 단어 $\vect x_t$의 정보를 기억에 \textbf{적는} 방법이 없다.
+\vskip3mm
+\textbf{해결.} 적을 내용 $\vect g$를 만들어 남긴 기억에 \textbf{더한다}:
+\[
+\vect g=\tanh(\vect x_tW_x^{(g)}+\vect h_{t-1}W_h^{(g)}+\vect b^{(g)})
+\]
+\[
+\vect c_t=\vect f\odot\vect c_{t-1}+\vect g\quad(\text{이 단계까지})
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{새 기억 $\vect g$의 성질}
+\begin{itemize}
+\item $\vect g$의 식은 RNN의 식과 같다.
+지금 단어와 직전 출력을 섞어 만든, RNN이었다면 그대로 은닉 상태가 되었을 내용이다
+\item 게이트와 달리 $\tanh$를 쓴다. $\vect g$는 ``얼마나''가 아니라 \textbf{내용}이므로
+양수도 음수도 될 수 있어야 한다. 크기는 $-1$과 $1$ 사이로 제한된다
+\end{itemize}
+\vskip3mm
+\begin{keybox}[덮어쓰지 않고 더한다]
+RNN은 매 시각 은닉 상태를 통째로 새로 계산했지만, LSTM은 남긴 기억 위에 새 내용을 얹는다.
+이 덧셈이 기울기가 사라지지 않는 이유가 된다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{5단계: input 게이트 --- 적을 내용을 얼마나 받아들일까}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[5.8cm]{lstm_full}
+\figcap{5단계: input 게이트 $\vect i$를 더해 완성한 LSTM 계층.
+위의 굵은 선이 기억 셀의 경로}
+\end{column}
+\begin{column}{0.47\textwidth}
+\small
+\textbf{문제.} 이대로면 모든 단어의 $\vect g$가 매 시각 기억에 더해진다.
+\w{Tom}과 마지막 \w{to} 사이의 $18$단어 대부분은 오래 기억할 필요가 없는데,
+그 내용이 계속 쌓이면 \w{Tom}의 기억이 묻힌다.
+\vskip3mm
+\textbf{해결.} $\vect g$에 성분마다 받아들일 비율 $\vect i$를 곱해서 더한다:
+\[
+\vect i=\sigma(\vect x_tW_x^{(i)}+\vect h_{t-1}W_h^{(i)}+\vect b^{(i)})
+\]
+\[
+\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g
+\]
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{input 게이트가 하는 일}
+\begin{itemize}
+\item $i_k\approx0$이면 지금 단어는 $k$번째 기억에 아무것도 적지 않는다.
+그 기억은 지금 단어로부터 \textbf{보호된다}
+\item 역할이 나뉜다. $\vect g$는 \textbf{무엇을} 적을지 (내용, $-1$--$1$),
+$\vect i$는 \textbf{얼마나} 적을지 (세기, $0$--$1$)를 정한다.
+내용을 만드는 일과 적을지 말지 판단하는 일을 따로 학습한다
+\item forget 게이트와 짝을 이룬다
+\end{itemize}
+\vskip2mm
+\centering
+\begin{tabular}{@{}ccl@{}}
+\toprule
+$f_k$ & $i_k$ & 하는 일 \\
+\midrule
+$\approx0$ & $\approx1$ & 옛 기억을 지우고 새 내용으로 바꿔 적는다 \\
+$\approx1$ & $\approx0$ & 옛 기억을 그대로 지킨다 \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{정리: LSTM의 식}
+네 식 모두 같은 입력 $(\vect x_t,\vect h_{t-1})$으로 계산한다:
+{\small
+\begin{align*}
+\vect f&=\sigma(\vect x_tW_x^{(f)}+\vect h_{t-1}W_h^{(f)}+\vect b^{(f)}) &&\text{forget 게이트: 이전 기억을 얼마나 남길까}\\
+\vect i&=\sigma(\vect x_tW_x^{(i)}+\vect h_{t-1}W_h^{(i)}+\vect b^{(i)}) &&\text{input 게이트: 새 정보를 얼마나 더할까}\\
+\vect o&=\sigma(\vect x_tW_x^{(o)}+\vect h_{t-1}W_h^{(o)}+\vect b^{(o)}) &&\text{output 게이트: 기억을 얼마나 내보낼까}\\
+\vect g&=\tanh(\vect x_tW_x^{(g)}+\vect h_{t-1}W_h^{(g)}+\vect b^{(g)}) &&\text{새로 기억할 내용}
+\end{align*}}
+그리고 기억 셀과 출력을 갱신한다 ($\odot$는 원소별 곱):
+\[
+\boxed{\;\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g,\qquad \vect h_t=\vect o\odot\tanh(\vect c_t)\;}
+\]
+네 식은 모양이 RNN의 식과 같고 가중치만 따로 쓴다.
+위첨자 $(f)$, $(i)$, $(o)$, $(g)$는 어느 식의 가중치인지를 표시한 것이고,
+네 결과는 모두 $\vect h$와 같은 $H$차원 벡터이다.
+\end{frame}
+
+\begin{frame}{네 부품의 역할}
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+부품 & 활성화 & 값의 범위 & 하는 일 \\
+\midrule
+forget 게이트 $\vect f$ & sigmoid & $0$--$1$ & 이전 기억 $\vect c_{t-1}$을 성분마다 얼마나 남길까 \\
+새 기억 $\vect g$ & $\tanh$ & $-1$--$1$ & 지금 단어에서 무엇을 적을까 (내용) \\
+input 게이트 $\vect i$ & sigmoid & $0$--$1$ & $\vect g$를 성분마다 얼마나 적을까 \\
+output 게이트 $\vect o$ & sigmoid & $0$--$1$ & 기억 $\tanh(\vect c_t)$를 성분마다 얼마나 내보낼까 \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{한 시각을 숫자로 따라가기}
+$H=3$인 기억 셀에서 한 시각의 계산이다. 게이트 값은 설명을 위해 정한 것이다.
+\vskip2mm
+\centering
+\small
+\begin{tabular}{@{}lrrrl@{}}
+\toprule
+& 성분 1 & 성분 2 & 성분 3 & \\
+\midrule
+이전 기억 $\vect c_{t-1}$ & $2.0$ & $-1.0$ & $0.5$ & \\
+forget $\vect f$ & $0.99$ & $0.01$ & $0.5$ & \\
+$\vect f\odot\vect c_{t-1}$ & $1.98$ & $-0.01$ & $0.25$ & 남긴 기억 \\
+새 기억 $\vect g$ & $0.5$ & $0.8$ & $-0.6$ & \\
+input $\vect i$ & $0.01$ & $0.99$ & $0.5$ & \\
+$\vect i\odot\vect g$ & $0.005$ & $0.792$ & $-0.3$ & 적는 내용 \\
+$\vect c_t$ & $1.985$ & $0.782$ & $-0.05$ & 새 기억 셀 \\
+$\tanh(\vect c_t)$ & $0.963$ & $0.654$ & $-0.05$ & \\
+output $\vect o$ & $0.02$ & $0.97$ & $0.5$ & \\
+$\vect h_t$ & $0.019$ & $0.634$ & $-0.025$ & 출력 \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{세 성분이 보여 주는 것}
+\begin{itemize}
+\item \textbf{성분 1}: 지키고 (forget $0.99$), 적지 않고 (input $0.01$), 내보내지 않는다 (output $0.02$).
+기억은 $2.0$에서 $1.985$로 거의 그대로이지만 출력은 $0.019$로 거의 $0$이다.
+지금은 쓰지 않지만 나중을 위해 간직하는 기억이다
+\item \textbf{성분 2}: 옛 기억 $-1.0$을 지우고 (forget $0.01$) 새 내용 $0.8$을 적은 뒤 (input $0.99$)
+바로 내보낸다 (output $0.97$). 지금 단어의 정보를 지금 쓴다
+\item \textbf{성분 3}: 모든 게이트가 $0.5$이다.
+옛 기억의 절반과 새 내용의 절반이 섞이고, 그 절반을 내보낸다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+RNN이었다면 세 성분 모두 $\tanh(\cdots)$로 새로 계산되어,
+성분 1처럼 값을 그대로 간직하는 일이 어렵다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{예: \w{Tom} 문제}
+학습이 잘 되었다면 다음처럼 동작할 수 있다.
+\vskip1mm
+\begin{enumerate}
+\item \w{Tom}을 읽을 때 input 게이트가 열려,
+$\vect c$의 어떤 성분에 ``주어는 \w{Tom}''이라는 정보가 적힌다
+\item 그 뒤 $18$단어 동안 그 성분의 forget 게이트는 $1$ 가까이, input 게이트는 $0$ 가까이 있어
+값이 그대로 유지된다
+\item \w{to}를 읽고 다음 단어로 사람 이름이 와야 할 때 output 게이트가 그 성분을 열어 $\vect h$로 내보낸다
+\end{enumerate}
+\vskip3mm
+\begin{keybox}
+어느 성분을 언제 열지는 사람이 정하지 않는다.
+다음 단어를 잘 맞히도록 학습하면서 게이트의 가중치가 정해진다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{게이트를 어떻게 이해할까}
+$\vect c_t$와 $\vect h_t$의 각 성분은 지금까지 읽은 글의 어떤 \textbf{특징}을 담는다.
+게이트는 그 특징들에 성분마다 다른 비율을 곱해 남길지, 적을지, 내보낼지를 조절한다.
+CNN에서 채널 (특징맵)마다 다른 가중치를 곱하는 것과 비슷하다.
+\vskip3mm
+다만 세 가지를 짚어 두어야 LSTM을 제대로 이해할 수 있다.
+\begin{enumerate}
+\item 게이트의 값은 학습된 가중치가 아니라 \textbf{매 시각 새로 계산되는 값}이다
+\item 세 게이트는 \textbf{기억 장치의 세 가지 조작}이다 (지우기, 쓰기, 읽기)
+\item 성분 하나가 뜻 하나에 깔끔하게 대응하지는 않는다
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{첫째: 게이트의 값은 매 시각 새로 계산된다}
+학습되는 것은 $W_x^{(f)}$, $W_h^{(f)}$ 같은 가중치이고, 게이트 값
+\[
+\vect f=\sigma(\vect x_tW_x^{(f)}+\vect h_{t-1}W_h^{(f)}+\vect b^{(f)})
+\]
+는 지금 단어와 직전 출력에 따라 시각마다 달라진다.
+\begin{itemize}
+\item 같은 성분의 input 게이트도 \w{Tom}을 읽을 때는 열리고, 그 뒤 $18$단어 동안은 닫힌다
+\item 그래서 LSTM이 배우는 것은 ``특징마다 정해진 중요도''가 아니라
+\textbf{어떤 상황에서 어떤 특징을 열고 닫을지 정하는 규칙}이다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+보통의 층은 입력의 가중합을 계산하지만, 게이트에서는 데이터로 계산한 벡터 ($\vect f$)가
+다른 벡터 ($\vect c_{t-1}$)에 \textbf{곱해져} 그 흐름을 조절한다.
+이 곱셈이 LSTM을 보통의 층과 다르게 만든다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{둘째: 기억 장치의 세 가지 조작}
+같은 ``비율 곱하기''이지만 곱하는 대상이 다르다.
+\vskip2mm
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+게이트 & 곱하는 대상 & 조작 \\
+\midrule
+$\vect f$ & 이전 기억 $\vect c_{t-1}$ & 무엇을 남기고 무엇을 \textbf{지울지} \\
+$\vect i$ & 새 내용 $\vect g$ & 무엇을 \textbf{적을지} \\
+$\vect o$ & 기억 $\tanh(\vect c_t)$ & 무엇을 \textbf{읽어 낼지} \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\raggedright
+컴퓨터의 메모리를 지우고, 쓰고, 읽는 것과 같다.
+다른 점은 $0$ 또는 $1$로 딱 자르지 않고 $0$과 $1$ 사이의 비율로 조금씩 한다는 것이다.
+그래서 미분할 수 있고, 역전파로 학습할 수 있다.
+\end{frame}
+
+\begin{frame}{셋째: 성분 하나가 뜻 하나는 아니다}
+\begin{itemize}
+\item ``성분 1은 주어 \w{Tom}''이라 한 것은 설명을 위해 단순화한 것이다.
+실제로는 하나의 정보가 여러 성분에 나뉘어 담기고, 한 성분도 여러 정보에 조금씩 관여한다
+(분산 표현, 1주차의 단어 벡터와 같다)
+\item 그래도 게이트가 잘 동작하는 것은,
+$\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g$가 성분끼리 섞지 않고
+\textbf{원소별로만} 계산되기 때문이다
+\item 성분이 섞이는 곳은 게이트와 $\vect g$를 계산할 때 곱하는 $W$뿐이다.
+학습은 그 $W$를 통해 ``게이트로 따로 다루기 좋은 좌표''에 정보를 배치하는 쪽으로 진행된다
+\end{itemize}
+\vskip2mm
+\begin{thinkbox}[어텐션으로 이어진다 (3주차)]
+어텐션도 데이터로 계산한 $0$--$1$ 사이의 가중치를 곱해 무엇을 볼지 고른다.
+LSTM의 게이트는 \textbf{특징 (성분)}마다, 어텐션은 \textbf{단어 위치}마다 가중치를 준다.
+\end{thinkbox}
+\end{frame}
+
+\begin{frame}{가중치는 RNN의 $4$배}
+식이 네 개이므로 가중치도 네 벌이다. 입력 크기 $D$, 은닉 상태 크기 $H$이면
+\[
+\text{RNN 계층: }DH+H^2+H,\qquad \text{LSTM 계층: }4(DH+H^2+H)
+\]
+PyTorch는 네 벌을 세로로 쌓아 한 행렬 ($4H\times D$와 $4H\times H$)로 두고, 편향을 두 개씩 둔다.
+$D=H=100$이면 \texttt{nn.RNN}은 $20{,}200$개, \texttt{nn.LSTM}은 $80{,}800$개이다.
+\vskip3mm
+\begin{remarkbox}[역사]
+LSTM은 Hochreiter와 Schmidhuber가 1997년에 발표했다.
+처음 LSTM에는 forget 게이트가 없어 $\vect c_t=\vect c_{t-1}+\vect i\odot\vect g$였다.
+기억이 쌓이기만 하고 지워지지 않아, 긴 입력에서 $\vect c$가 계속 커지는 문제가 있었다.
+2000년에 Gers, Schmidhuber, Cummins가 forget 게이트를 더해 지금의 형태가 되었다.
+\end{remarkbox}
+\end{frame}
+
+\begin{frame}{왜 기울기가 사라지지 않는가}
+\sfig[3.4cm]{lstm_cpath}
+\figcap{기억 셀의 경로에는 덧셈 ($+$)과 forget 게이트와의 원소별 곱 ($\times$)만 있다}
+\vskip1mm
+\begin{itemize}
+\item 덧셈은 gradient를 그대로 흘려보낸다
+\item 원소별 곱은 forget 게이트의 값을 곱한다.
+같은 행렬을 거듭 곱하는 RNN과 달리, 시각마다 \textbf{다른} 게이트 값을 곱한다
+\item forget 게이트가 $1$에 가까우면 (``잊지 마라'') 그 성분의 gradient는 줄지 않고 먼 과거까지 전달된다
+\end{itemize}
+\figcap{CNN 단원의 ResNet에서 덧셈 연결이 깊은 신경망의 학습을 가능하게 한 것과 같은 원리}
+\end{frame}
+
+\begin{frame}{숫자로 비교하기: $20$단어 앞까지 gradient가 얼마나 남는가}
+한 단계를 거슬러 갈 때마다 gradient에 곱해지는 값을 하나의 숫자로 단순화해 보자.
+\vskip2mm
+\centering
+\begin{tabular}{@{}lll@{}}
+\toprule
+& 한 단계에 곱해지는 값 & $20$단계 뒤 \\
+\midrule
+RNN & $0.5$ ($\tanh$의 미분과 $W_h$) & $0.5^{20}\approx9.5\times10^{-7}$ \\
+LSTM의 기억 셀 & $0.95$ (forget 게이트) & $0.95^{20}\approx0.36$ \\
+LSTM의 기억 셀 & $0.99$ (forget 게이트) & $0.99^{20}\approx0.82$ \\
+\bottomrule
+\end{tabular}
+\vskip2mm
+\raggedright
+LSTM은 오래 기억해야 할 성분의 forget 게이트를 $1$ 가까이 열어 두는 법을 학습한다.
+\vskip2mm
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\begin{keybox}[PyTorch]
+\texttt{nn.RNN}을 \texttt{nn.LSTM}으로 바꾸기만 하면 된다.
+상태가 $\vect h$와 $\vect c$ 두 개이므로 \texttt{(h, c)} 튜플로 주고받는다.
+\end{keybox}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{remarkbox}[GRU]
+기억 셀 없이 $\vect h$ 하나만 쓰고 게이트는 두 개.
+가중치가 적고 성능은 비슷한 경우가 많다 (\texttt{nn.GRU}).
+\end{remarkbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{PTB로 비교하기: RNN과 LSTM}
+같은 크기 (단어 벡터 $100$차원, 은닉 상태 $100$차원)의 두 언어모델 (\texttt{rnnlm\_ptb.py}).
+$20$개 행, $35$단어마다 역전파를 끊고, Adam (학습률 $10^{-3}$), clipping (크기 $1$), $10$ epoch.
+\vskip2mm
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.38\textwidth}
+\pfig[4.2cm]{figures/rnnlm_ppl.png}
+\figcap{epoch마다 잰 검증 퍼플렉서티}
+\end{column}
+\begin{column}{0.59\textwidth}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+& 가장 낮은 검증 & 10 epoch 검증 & 테스트 \\
+\midrule
+RNN & $171.1$ (8 epoch) & $172.8$ & $161.9$ \\
+LSTM & $156.1$ (10 epoch) & $156.1$ & $144.3$ \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\begin{remarkbox}[LSTM을 더 좋게 만드는 방법]
+LSTM 계층을 여러 층 쌓고, dropout을 넣고, Embedding과 마지막 Affine 층의 가중치를 공유
+(weight tying)하면 퍼플렉서티가 더 내려간다.
+모두 쓴 큰 LSTM 언어모델은 PTB에서 $60$ 정도까지 내려간다고 알려져 있다.
+\end{remarkbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{결과 읽기}
+\begin{itemize}
+\item 퍼플렉서티 $144$는 ``다음 단어의 후보를 $10{,}000$개에서 평균 $144$개 정도로 좁혔다''는 뜻이다
+\item 처음 몇 epoch은 RNN이 더 빨리 내려가지만, LSTM이 더 낮은 곳까지 내려간다
+\item RNN은 8 epoch 뒤로 검증 퍼플렉서티가 다시 올라간다. 학습 데이터에 과적합하기 시작한 것이다
+\item 가중치는 RNN $2{,}030{,}200$개, LSTM $2{,}090{,}800$개. 차이는 LSTM 계층의 게이트 가중치이고,
+나머지 $2{,}010{,}000$개는 두 모델이 똑같이 가진 Embedding과 Affine 층에 있다
+\item GPU (RTX 3050)에서 두 모델 모두 한 epoch에 $10$--$15$초쯤 걸린다
+\end{itemize}
+\end{frame}
+
+% =================================================
+\section{문장 생성과 seq2seq}
+% =================================================
+
+\begin{frame}{언어모델로 문장 만들기}
+\sfig[4.6cm]{generate}
+\figcap{확률분포에서 단어를 뽑고 (\w{say}), 그것을 다음 입력으로 넣어 다음 단어를 뽑는다 (\w{hello})}
+\vskip2mm
+\begin{itemize}
+\item 확률이 가장 큰 단어만 고르면 매번 같은 문장이 나온다
+\item 확률에 따라 무작위로 뽑으면 다양한 문장이 나온다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{temperature: 얼마나 무작위로 뽑을까}
+점수 $\vect z$를 softmax에 넣기 전에 양수 $\tau$로 나눈다. $\tau$를 temperature라 한다:
+\[
+p_i=\frac{e^{z_i/\tau}}{\sum_je^{z_j/\tau}}
+\]
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\centering
+\small
+점수 $\vect z=(2,\ 1,\ 0)$일 때 (\texttt{lm\_tiny.py}의 3번 셀)
+\vskip1mm
+\begin{tabular}{@{}lccc@{}}
+\toprule
+& $p_1$ & $p_2$ & $p_3$ \\
+\midrule
+$\tau=0.5$ & $0.8668$ & $0.1173$ & $0.0159$ \\
+$\tau=1$ & $0.6652$ & $0.2447$ & $0.0900$ \\
+$\tau=2$ & $0.5065$ & $0.3072$ & $0.1863$ \\
+\bottomrule
+\end{tabular}
+\end{column}
+\begin{column}{0.46\textwidth}
+\begin{itemize}
+\item $\tau$가 작으면 점수가 큰 단어에 확률이 몰린다.
+$\tau\to0$이면 항상 점수가 가장 큰 단어를 고른다
+\item $\tau$가 크면 확률이 고르게 퍼진다
+\item 대화형 언어모델에서 고르는 temperature가 이 $\tau$이다
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{top-k와 top-p}
+어휘가 수만 개이면 하나하나의 확률은 작아도 엉뚱한 단어들의 확률을 모두 더하면 꽤 크다.
+그래서 그중 하나가 뽑혀 글이 엇나가기 쉽다.
+확률이 큰 단어만 남기고 나머지를 $0$으로 만든 뒤 다시 정규화해서 뽑는다.
+\begin{itemize}
+\item \textbf{top-k}: 확률이 큰 단어 $k$개만 남긴다
+\item \textbf{top-p} (nucleus sampling): 확률이 큰 것부터 더해서 합이 $p$ (예: $0.9$)에 처음 이를 때까지의
+단어만 남긴다. 분포가 뾰족하면 몇 개만, 넓게 퍼지면 많이 남는다
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+대화형 언어모델은 보통 temperature와 top-p를 함께 쓴다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{예: top-k와 top-p (\texttt{lm\_tiny.py}의 6번 셀)}
+점수가 $7$개인 경우. 확률은 점수의 softmax이고, 큰 것부터 차례로 놓았다.
+\vskip3mm
+\centering
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+점수 & $3$ & $2.5$ & $2$ & $1$ & $0.5$ & $0$ & $-1$ \\
+확률 & $0.443$ & $0.268$ & $0.163$ & $0.060$ & $0.036$ & $0.022$ & $0.008$ \\
+누적합 & $0.443$ & $0.711$ & $0.874$ & $0.934$ & & & \\
+\midrule
+top-k ($k=3$) & $0.507$ & $0.307$ & $0.186$ & & & & \\
+top-p ($p=0.9$) & $0.474$ & $0.288$ & $0.174$ & $0.064$ & & & \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\raggedright
+\begin{itemize}
+\item top-k: 앞의 세 개만 남기고 다시 정규화한다
+\item top-p: 누적합이 $0.9$에 처음 이르는 네 번째까지 남기고 다시 정규화한다
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{생성 코드 (\texttt{rnnlm\_ptb.py}의 4번 셀)}
+먼저 글의 앞부분 (prompt)을 읽히고, 그 뒤를 한 단어씩 이어 쓰게 한다.
+\begin{lstlisting}
+logits, state = model(torch.tensor([ids], device=device))   # read the prompt
+for _ in range(n_words):
+    p = torch.softmax(logits[0, -1] / tau, dim=0)           # distribution of the next word
+    nxt = torch.multinomial(p, 1).item()                    # sample one word from it
+    ids.append(nxt)
+    logits, state = model(torch.tensor([[nxt]], device=device), state)   # feed it back
+\end{lstlisting}
+\begin{itemize}
+\item \texttt{logits[0, -1] / tau}: 마지막 위치의 점수를 $\tau$로 나눠 softmax에 넣는다
+\item \texttt{torch.multinomial}: 확률에 따라 단어 하나를 뽑는다
+\item \texttt{state}에 은닉 상태가 들어 있으므로, 새로 뽑은 단어 하나만 넣으면 된다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{LSTM 언어모델이 이어 쓴 글}
+7절의 LSTM 언어모델에 \w{the company said it} (밑줄)을 읽히고 $25$단어를 이어 쓰게 했다.
+문장의 끝 (\w{<eos>})은 \w{/}로 표시했다.
+\vskip2mm
+\begin{remarkbox}
+\ttfamily\footnotesize\linespread{1.2}\selectfont\raggedright
+\textrm{$\tau=0.5$:} \underline{the company said it} expects to be sold / the federal reserve bank said that the <unk> of the <unk> has been <unk> by the company 's <unk> ratio\\[0.6em]
+\textrm{$\tau=1.0$:} \underline{the company said it} expects margins in connection with the federal bond a year earlier / revenue rose N N to N N before the company 's <unk> fibers\\[0.6em]
+\textrm{$\tau=1.5$:} \underline{the company said it} ends cigarette accrued shy somewhere / federal entertainment a vaccine warning rep. salon brooklyn checks will served a homer move acquired free tuesday because our
+\end{remarkbox}
+\figcap{PTB는 숫자를 \w{N}으로, 드문 단어를 \w{<unk>}로 바꾸어 두었다}
+\end{frame}
+
+\begin{frame}{이어 쓴 글에서 보이는 것}
+\begin{itemize}
+\item $\tau=0.5$와 $1.0$의 글은 내용은 없어도 \w{expects to be sold}, \w{revenue rose N N to N N}처럼
+구절의 문법과 신문 기사의 말투를 따른다
+\item $\tau=1.5$에서는 확률이 낮은 단어가 자주 뽑혀 문법이 무너진다
+\item $\tau$가 작으면 흔한 단어만 되풀이하기도 한다.
+$\tau=0.5$에서 난수만 바꾼 다른 글에는 \w{<unk>}가 아홉 번 잇달아 나온다
+\end{itemize}
+\vskip3mm
+\begin{keybox}
+모델은 문법도 단어의 뜻도 따로 배운 적이 없다. \textbf{다음 단어를 맞히는 학습}만으로 이 정도를 배웠다.
+같은 방법으로 모델과 말뭉치를 훨씬 크게 하면, 지금의 대화형 언어모델처럼 긴 글도 자연스럽게 만든다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{seq2seq: 문장을 받아 문장을 내는 모델}
+번역은 문장을 받아 다른 문장을 낸다. 입력과 출력의 길이가 다르다.
+이런 문제를 \textbf{seq2seq} (sequence to sequence) 모델로 푼다. 두 개의 RNN (보통 LSTM)으로 이루어진다.
+\sfig[2.9cm]{encdec}
+\figcap{Encoder가 입력 문장을 읽어 벡터 $\vect h$로 요약하고, Decoder가 $\vect h$에서 출력 문장을 만든다}
+\begin{itemize}
+\item \textbf{Encoder}: 입력 문장을 한 단어씩 읽는다.
+마지막 은닉 상태 $\vect h$가 문장 전체를 요약한 \textbf{고정 길이 벡터}이다
+\item \textbf{Decoder}: $\vect h$에서 시작하는 언어모델. 시작 기호 (\w{<eos>})를 받아 첫 단어를 내고,
+그 단어를 다음 입력으로 넣는 식으로 끝 기호가 나올 때까지 생성한다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{seq2seq의 계층 구성}
+\sfig[4.0cm]{seq2seq}
+\figcap{Encoder의 마지막 은닉 상태 $\vect h$ (빨간색)가 Decoder의 첫 은닉 상태가 된다}
+\vskip1mm
+\begin{itemize}
+\item Decoder는 7절의 언어모델과 같은 구조이다.
+차이는 \textbf{첫 은닉 상태가 $\vect 0$이 아니라 $\vect h$}라는 것 하나이다
+\item 입력 문장의 정보는 $\vect h$를 통해서만 Decoder에 전달된다
+\item 학습할 때는 Decoder의 입력으로 정답 단어를 넣고 (한 칸 밀어서), 생성할 때는 자기가 낸 단어를 넣는다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{예: 덧셈을 배우는 seq2seq}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\sfig[2.8cm]{addition}
+\figcap{덧셈 문제와 답을 글자열로 주고받는다}
+\end{column}
+\begin{column}{0.48\textwidth}
+\sfig[2.8cm]{padding}
+\figcap{문제와 답의 길이를 공백으로 맞춘다.
+답 앞의 \w{\_}는 생성 시작을 알리는 기호}
+\end{column}
+\end{columns}
+\vskip3mm
+신경망은 ``덧셈''을 모른다. \w{"57+5"}라는 글자 네 개를 보고 \w{"62"}라는 글자 두 개를 내야 할 뿐이다.
+글자 단위로 입력하고, 문제의 길이가 달라도 같은 크기로 다루도록 공백을 채운다.
+\end{frame}
+
+\begin{frame}{덧셈 데이터와 학습 설정 (\texttt{seq2seq\_addition.py})}
+\begin{itemize}
+\item $0$--$999$ 사이 수의 \textbf{서로 다른} 덧셈 문제 $50{,}000$개를 만들어
+$45{,}000$개로 학습하고, 나머지 $5{,}000$개로 정확도 (답 전체가 맞은 비율)를 잰다
+\item \w{7+254}와 \w{254+7}은 같은 문제로 센다.
+그래서 테스트 문제는 순서를 바꾼 것까지 포함해 학습 데이터에 한 번도 나오지 않는다
+\item 글자 Embedding $16$차원, LSTM 은닉 상태 $128$차원, Adam, 미니배치 $128$, $25$ epoch
+\end{itemize}
+\vskip3mm
+\begin{keybox}
+답을 외워서는 맞힐 수 없다. 맞히려면 글자열에서 덧셈의 규칙을 배워야 한다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{개선 1: 입력 뒤집기}
+\sfig[2.8cm]{reverse}
+\figcap{입력 데이터의 순서를 뒤집는다}
+\vskip3mm
+입력 문장을 거꾸로 넣는다 (Sutskever 등, 2014).
+정확한 이유는 분명하지 않지만, 많은 경우 학습이 빨라진다. 한 가지 설명은 이렇다.
+\begin{itemize}
+\item 덧셈의 답에서 처음 나오는 자리는 문제의 앞쪽 자리와 관련이 깊다
+\item 입력을 뒤집으면 그 글자들이 Encoder의 마지막 쪽에 와서 Decoder와 가까워진다.
+gradient가 짧은 경로로 전달된다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{개선 2: 엿보기 (peeky)}
+기본 seq2seq에서는 Encoder의 요약 $\vect h$를 Decoder의 첫 LSTM만 받는다.
+뒤로 갈수록 $\vect h$의 정보가 흐려질 수 있다.
+그래서 $\vect h$를 Decoder의 \textbf{모든 시각}의 LSTM과 Affine 층에 함께 넣는다.
+\sfig[4.4cm]{peeky}
+\figcap{peeky Decoder: Encoder의 출력 $\vect h$를 모든 시각에 넣는다}
+\end{frame}
+
+\begin{frame}[fragile]{코드 (1): 층과 Encoder (\texttt{seq2seq\_addition.py}의 2번 셀)}
+\begin{lstlisting}
+class Seq2seq(nn.Module):
+    def __init__(self, V, D=16, H=128, peeky=False):
+        super().__init__()
+        self.peeky = peeky
+        self.enc_embed = nn.Embedding(V, D)
+        self.encoder = nn.LSTM(D, H, batch_first=True)
+        self.dec_embed = nn.Embedding(V, D)
+        self.decoder = nn.LSTM(D + (H if peeky else 0), H, batch_first=True)
+        self.out = nn.Linear(H + (H if peeky else 0), V)
+
+    def encode(self, q):
+        _, (h, c) = self.encoder(self.enc_embed(q))
+        return h                              # (1, B, H): the whole question in one vector
+\end{lstlisting}
+\begin{itemize}
+\item \texttt{encode}: Encoder의 LSTM이 문제를 읽고 마지막 은닉 상태 $\vect h$만 돌려준다
+\item \texttt{peeky=True}이면 엿보기를 쓴다.
+$\vect h$를 이어 붙이므로 Decoder의 LSTM과 Linear의 입력이 $H$만큼 커진다
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{코드 (2): Decoder와 학습}
+\begin{lstlisting}
+    def decode_step(self, x, state, h_enc):   # x: (B, t) characters given to the decoder
+        e = self.dec_embed(x)
+        if self.peeky:                        # give h to every time step
+            e = torch.cat([e, h_enc[0][:, None, :].expand(-1, e.size(1), -1)], dim=2)
+        o, state = self.decoder(e, state)
+        if self.peeky:
+            o = torch.cat([o, h_enc[0][:, None, :].expand(-1, o.size(1), -1)], dim=2)
+        return self.out(o), state
+
+    def forward(self, q, a_in):               # training: the true answer is the input
+        h = self.encode(q)
+        logits, _ = self.decode_step(a_in, (h, torch.zeros_like(h)), h)
+        return logits
+\end{lstlisting}
+\begin{itemize}
+\item 엿보기는 \texttt{torch.cat}으로 $\vect h$를 LSTM의 입력과 Linear의 입력에 이어 붙이는 것이다
+\item \texttt{forward} (학습): Decoder의 첫 상태를 $\vect h$로 두고,
+정답 글자열을 입력으로 넣어 모든 시각의 점수를 한 번에 계산한다
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{코드 (3): 생성}
+\begin{lstlisting}
+    def generate(self, q, n=4):               # testing: feed back its own output
+        h = self.encode(q)
+        state = (h, torch.zeros_like(h))      # the decoder starts from the encoder's h
+        x = torch.full((q.size(0), 1), c2i["_"], device=q.device)     # the start symbol
+        out = []
+        for _ in range(n):
+            logits, state = self.decode_step(x, state, h)
+            x = logits.argmax(dim=2)          # next input: the most probable character
+            out.append(x)
+        return torch.cat(out, dim=1)
+\end{lstlisting}
+\begin{itemize}
+\item \texttt{generate} (생성): 시작 기호에서 출발해,
+점수가 가장 큰 글자를 다음 입력으로 넣기를 네 번 되풀이한다
+\item 학습 (\texttt{forward})은 정답 글자를, 생성 (\texttt{generate})은 자기가 낸 글자를 다음 입력으로 쓴다
+\end{itemize}
+\end{frame}
+
+\begin{frame}{결과: 덧셈 문제의 정확도}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.40\textwidth}
+\pfig[4.6cm]{figures/seq2seq_accuracy.png}
+\figcap{epoch마다 잰 덧셈 문제의 정확도}
+\end{column}
+\begin{column}{0.57\textwidth}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+모델 & 5 epoch & 10 epoch & 25 epoch \\
+\midrule
+기본 & $0.030$ & $0.070$ & $0.100$ \\
+입력 뒤집기 & $0.044$ & $0.106$ & $0.299$ \\
+뒤집기 $+$ 엿보기 & $0.150$ & $0.919$ & $0.983$ \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\normalsize
+기본 모델은 $25$ epoch 뒤에도 $10\%$밖에 맞히지 못한다.
+입력을 뒤집으면 $30\%$, 엿보기를 더하면 $98.3\%$를 맞힌다.
+\vskip2mm
+\footnotesize
+모델 하나의 학습에 GPU (RTX 3050)에서 $2$--$3$분이 걸린다.
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{덧셈의 규칙을 가르친 적이 없는데}
+마지막 모델은 학습 때 본 적이 없는 문제 \w{453+97}에 \w{550}, \w{5+995}에 \w{1000}이라고 답한다.
+\vskip3mm
+\centering
+\begin{tabular}{@{}lrr@{}}
+\toprule
+테스트 문제 & 문제 수 & 맞힌 문제 \\
+\midrule
+받아올림이 있는 문제 & $3{,}534$ & $3{,}487$ ($98.7\%$) \\
+받아올림이 없는 문제 & $1{,}466$ & $1{,}428$ \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\raggedright
+\begin{keybox}
+덧셈의 규칙을 가르쳐 준 적이 없는데, 글자열의 예만 보고 받아올림까지 배운 것이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{seq2seq의 한계}
+\begin{itemize}
+\item Encoder는 입력 문장이 아무리 길어도 \textbf{고정 길이 벡터 $\vect h$ 하나}로 요약한다
+\item 짧은 덧셈 문제는 괜찮지만, 긴 문장을 번역할 때는 필요한 정보가 $\vect h$ 하나에 다 담기지 않는다
+\item 엿보기는 $\vect h$를 여러 번 보게 했을 뿐, $\vect h$ 자체의 크기는 그대로이다
+\end{itemize}
+\vskip3mm
+\begin{keybox}
+Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분을 직접 찾아 보게} 하면 어떨까?
+그것이 3주차의 \textbf{어텐션}이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{2주차 정리}
+\begin{mlbox}
+\small
+\begin{itemize}
+\item 언어모델은 앞의 단어들로 다음 단어의 확률을 계산한다. 성능은 퍼플렉서티로 잰다
+\item RNN은 은닉 상태 $\vect h_t$에 지금까지의 단어를 요약하며 한 단어씩 읽는다.
+학습은 시간 방향으로 펼친 신경망의 역전파 (Truncated BPTT)이다
+\item RNN은 먼 과거의 gradient가 사라지거나 폭발한다. 폭발은 gradient clipping으로, 소실은 LSTM으로 해결한다
+\item LSTM은 기억 셀 $\vect c$와 세 게이트 (forget, input, output)를 가진다.
+기억 셀의 경로는 덧셈과 원소별 곱뿐이라 gradient가 잘 전달된다
+\item 언어모델에서 단어를 반복해서 뽑으면 문장이 생성된다. 얼마나 무작위로 뽑을지는 temperature로 조절한다
+\item seq2seq는 Encoder로 입력을 벡터 $\vect h$로 요약하고, Decoder가 $\vect h$에서 출력 문장을 생성한다.
+덧셈 문제에서는 입력 뒤집기와 엿보기를 더해야 학습이 잘 되었다
+\end{itemize}
+\end{mlbox}
+\end{frame}
+
+\begin{frame}{다음 주: 필요한 곳을 찾아 보기}
+\begin{itemize}
+\item 긴 문장의 정보를 작은 벡터 하나에 다 담기는 어렵다.
+사람이 번역할 때도 원문 전체를 외운 뒤 번역하지 않는다
+\item 번역문의 단어를 하나 쓸 때마다 원문의 \textbf{해당하는 부분을 다시 본다}.
+이것을 신경망에서 하는 방법이 \textbf{어텐션} (attention)이다
+\item Encoder는 마지막 은닉 상태만이 아니라 \textbf{모든 시각의 은닉 상태}를 넘기고,
+Decoder는 출력할 단어마다 입력의 어느 단어를 볼지 가중치로 고른다
+\end{itemize}
+\vskip3mm
+\begin{keybox}[3주차]
+어텐션 $\to$ 어텐션만으로 만든 Transformer $\to$ Transformer로 만든 언어모델 GPT
+\end{keybox}
+\end{frame}
+
+\end{document}

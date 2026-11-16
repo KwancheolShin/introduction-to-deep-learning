@@ -17,6 +17,6 @@ Folders with a `연습문제_정답` subfolder also have answer keys for the exe
 | [09_중간고사](09_중간고사) | 8 | Midterm exam | exam, solution, practice exam |
 | [10_CNN](10_CNN) | 9 | Convolutional neural networks | notes, slides, code-reading slides, `code/`, answer keys |
 | [13_PINN](13_PINN) | 12–13 | Physics-informed neural networks | notes, slides, `code/` |
-| [14_언어모델](14_언어모델) | 14–16 | Natural language processing and language models: word vectors, RNN, seq2seq, attention, Transformer, GPT | notes, `code/`, run logs in `data/` |
+| [14_언어모델](14_언어모델) | 14–16 | Natural language processing and language models: word vectors, RNN, seq2seq, attention, Transformer, GPT | notes, slides (one deck per week), `code/`, run logs in `data/` |
 
 `figures/` holds figures that the notes in `03_GD_Newton` include.

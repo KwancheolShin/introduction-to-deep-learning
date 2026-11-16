@@ -1,0 +1,919 @@
+% !TeX program = xelatex
+\documentclass[aspectratio=169,11pt]{beamer}
+\input{slides_preamble}
+
+\title[자연어 처리와 언어모델 1주차]{자연어 처리와 언어모델}
+\subtitle{1주차 \texorpdfstring{$\cdot$}{-} 단어를 벡터로}
+\date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
+
+\begin{document}
+
+% =================================================
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}{이 단원의 핵심 질문}
+\begin{keybox}[이 단원의 핵심 질문]
+\begin{itemize}
+\item 지금까지 신경망의 입력은 숫자였다. 그림은 픽셀 값의 배열이고, PINN의 입력은 좌표였다.
+\item 글은 숫자가 아니다. \w{cat}이라는 단어를 신경망에 어떻게 넣을까?
+\item 단어가 아니라 \textbf{문장}, 즉 길이가 제각각이고 순서가 중요한 단어의 열은 어떻게 다룰까?
+\end{itemize}
+\end{keybox}
+\vskip2mm
+단어를 벡터로 바꾸는 방법에서 시작해, 문장을 읽고 쓰는 신경망 (RNN, seq2seq)을 거쳐,
+지금의 언어모델 (GPT 등)의 핵심인 어텐션과 Transformer까지 간다.
+\end{frame}
+
+\begin{frame}{3주의 흐름}
+\centering
+\small
+\begin{tabular}{@{}lp{54mm}p{68mm}@{}}
+\toprule
+주 & 질문 & 내용 \\
+\midrule
+\rowcolor{softblue}
+1주차 & 단어를 어떻게 벡터로 바꾸는가? & 동시발생 행렬, PPMI, SVD, word2vec (CBOW), Embedding, 네거티브 샘플링 \\
+2주차 & 문장을 어떻게 다루는가? & 언어모델, RNN, LSTM, 문장 생성, seq2seq \\
+3주차 & 긴 문장에서 필요한 정보를 어떻게 찾는가? & 어텐션, Transformer, GPT, 토큰 \\
+\bottomrule
+\end{tabular}
+\vskip4mm
+\raggedright
+슬라이드의 숫자는 모두 노트의 코드 (\texttt{code/})를 실제로 실행한 결과이다.
+설명을 위해 정한 값은 그렇다고 표시한다.
+\end{frame}
+
+\begin{frame}{1주차 학습목표}
+\begin{enumerate}
+\item \textbf{분포 가설}: 단어의 의미를 주변 단어로 나타낸다
+\item 동시발생 행렬, 코사인 유사도, PPMI, SVD로 단어 벡터를 \textbf{세어서} 만든다
+\item word2vec (CBOW): 맥락으로 가운데 단어를 \textbf{맞히는} 신경망의 가중치가 단어 벡터가 된다
+\item 원핫 벡터와 행렬의 곱은 행 꺼내기이다. 그래서 \textbf{Embedding 층}이 나온다
+\item \textbf{네거티브 샘플링}: 큰 어휘의 다중 분류를 몇 번의 이진 분류로 바꾼다
+\item 이 장의 부품이 지금의 언어모델 (GPT, RAG)에서 어떻게 쓰이는가
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{코드와 데이터 (1주차)}
+코드는 \texttt{code/} 폴더에 있고, 그 폴더에서 실행한다. 그림은 \texttt{figures/}에 저장된다.
+\vskip2mm
+\centering
+\begin{tabular}{@{}lp{98mm}@{}}
+\toprule
+파일 & 내용 \\
+\midrule
+\texttt{text\_utils.py} & 말뭉치 전처리, PTB 내려받기, 동시발생 행렬, PPMI, 코사인 유사도 (공통 함수) \\
+\texttt{count\_based.py} & 세어서 만드는 단어 벡터: 작은 예문과 PTB (2절) \\
+\texttt{cbow\_simple.py} & 문장 하나로 학습하는 CBOW 모델 (3절) \\
+\texttt{cbow\_ptb.py} & Embedding과 네거티브 샘플링을 쓴 CBOW, PTB (4절, GPU 권장) \\
+\bottomrule
+\end{tabular}
+\vskip3mm
+\raggedright
+큰 데이터 실험은 영어 신문 기사로 된 말뭉치 \textbf{PTB} (Penn Treebank)를 쓴다.
+코드를 처음 실행할 때 \texttt{data/} 폴더로 내려받는다.
+\end{frame}
+
+\begin{frame}{목차}
+\tableofcontents
+\end{frame}
+
+% =================================================
+\section{단어의 의미를 어떻게 표현할까}
+% =================================================
+
+\begin{frame}{사람이 정리한 사전: 시소러스}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.46\textwidth}
+\sfig[4.2cm]{thesaurus}
+\figcap{단어들을 의미의 상하 관계로 정리한 그래프}
+\end{column}
+\begin{column}{0.5\textwidth}
+비슷한 뜻의 단어를 묶고, ``\w{car}는 \w{motor vehicle}의 한 종류''처럼 상하 관계를 그래프로 만든 사전을 \textbf{시소러스}라 한다.
+영어의 WordNet이 대표적이다.
+\vskip2mm
+\begin{remarkbox}[문제]
+\begin{itemize}
+\item 새로운 단어와 새로운 뜻이 계속 생긴다. 사람이 계속 고쳐야 한다.
+\item 만드는 데 사람의 노력이 많이 든다.
+\item ``비슷하다''는 정도를 숫자로 나타내기 어렵다. 같은 무리인지 아닌지만 알 수 있다.
+\end{itemize}
+\end{remarkbox}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{분포 가설: 단어의 의미는 주변 단어가 정한다}
+이 단원의 모든 방법은 다음 생각에서 출발한다 (Harris, 1954; Firth, 1957).
+\begin{keybox}[분포 가설]
+단어의 의미는 그 단어의 \textbf{주변에 나오는 단어들} (맥락)로 정해진다.
+\end{keybox}
+\vskip1mm
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\w{I drink beer} & \w{we drink wine} \\
+\w{I guzzle beer} & \w{we guzzle wine} \\
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item \w{drink} 주변에는 마실 것이 나온다.
+\item \w{guzzle}이 처음 보는 단어라도 \w{drink}와 비슷한 뜻이라고 짐작할 수 있다. 주변 단어가 같기 때문이다.
+\item 그러면 \textbf{주변 단어를 세거나 맞히는} 일로 단어의 의미를 숫자로 만들 수 있다. 사람이 정리할 필요가 없다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{맥락과 윈도우 크기, 그리고 두 가지 방법}
+어떤 단어의 좌우 몇 단어를 맥락으로 볼지를 \textbf{윈도우 크기}라 한다.
+\sfig[1.6cm]{window}
+\figcap{윈도우 크기 $2$일 때 \w{goodbye}의 맥락 (주황색 네 단어)}
+\vskip2mm
+분포 가설을 두 가지 방법으로 구현한다.
+\begin{itemize}
+\item \textbf{통계 기반} (2절): 말뭉치 전체에서 주변 단어를 \textbf{세어} 표를 만들고, 그 표에서 벡터를 뽑는다.
+\item \textbf{추론 기반} (3--4절): 주변 단어로 가운데 단어를 \textbf{맞히는} 신경망을 학습하고, 그 가중치를 벡터로 쓴다 (word2vec).
+\end{itemize}
+\end{frame}
+
+% =================================================
+\section{세어서 만드는 단어 벡터}
+% =================================================
+
+\begin{frame}{말뭉치와 단어 ID}
+글을 모은 것을 \textbf{말뭉치} (corpus)라 한다.
+먼저 단어마다 번호 (ID)를 붙이고, 말뭉치를 번호의 열로 바꾼다.
+\vskip2mm
+예문 \w{"You say goodbye and I say hello."}를 소문자로 바꾸고 마침표도 한 단어로 보면
+(\texttt{count\_based.py}의 1번 셀)
+\begin{center}
+\begin{tabular}{@{}lccccccc@{}}
+\toprule
+단어 & \w{you} & \w{say} & \w{goodbye} & \w{and} & \w{i} & \w{hello} & \w{.} \\
+ID & $0$ & $1$ & $2$ & $3$ & $4$ & $5$ & $6$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{itemize}
+\item 말뭉치는 $[0,1,2,3,4,1,5,6]$이 된다.
+\item 어휘의 크기는 $V=7$이다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{동시발생 행렬}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.5\textwidth}
+\sfig[4.6cm]{cooc}
+\figcap{예문의 동시발생 행렬 (윈도우 크기 $1$)}
+\end{column}
+\begin{column}{0.47\textwidth}
+\begin{itemize}
+\item 각 단어의 맥락에 어떤 단어가 몇 번 나오는지 센다.
+\item 윈도우 크기 $1$: \w{you}의 맥락은 \w{say} 하나, \w{say}의 맥락은 \w{you}, \w{goodbye}, \w{i}, \w{hello}.
+\item $C_{ij}$ = 단어 $i$의 맥락에 단어 $j$가 나온 횟수.
+\item 각 행이 그 단어의 벡터이다. \\
+\w{you}: $(0,1,0,0,0,0,0)$ \\
+\w{i}: $(0,1,0,1,0,0,0)$
+\item 대칭 행렬이다. $i$의 맥락에 $j$가 있으면 $j$의 맥락에도 $i$가 있다.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{코사인 유사도}
+두 단어 벡터가 얼마나 비슷한지는 \textbf{코사인 유사도}로 잰다:
+\[
+\operatorname{similarity}(\vect x,\vect y)=\frac{\vect x\cdot\vect y}{\|\vect x\|\,\|\vect y\|}.
+\]
+\begin{itemize}
+\item 두 벡터 사이의 각의 코사인이다. 방향이 같으면 $1$, 수직이면 $0$이다.
+\item 벡터의 길이 (단어가 얼마나 자주 나오는가)는 상관하지 않고 \textbf{방향}만 본다.
+\end{itemize}
+\vskip1mm
+\begin{keybox}[예문에서]
+\begin{itemize}
+\item \w{you}와 \w{i}: 내적은 $1$, 길이는 $1$과 $\sqrt2$이므로 $1/\sqrt2=0.7071$.
+\item \w{you}와 가장 비슷한 단어는 \w{goodbye}, \w{hello}, \w{i}가 모두 $0.7071$로 같다 (\texttt{count\_based.py}의 3번 셀).
+셋 다 맥락에 \w{say}가 있기 때문이다. 문장 하나로는 이 정도가 한계이다.
+\end{itemize}
+\end{keybox}
+\end{frame}
+
+\begin{frame}{횟수를 그대로 쓰면 생기는 문제: PMI}
+\begin{itemize}
+\item \w{the}처럼 아주 자주 나오는 단어는 어떤 단어의 맥락에도 많이 나온다.
+\item 그러면 \w{car}는 의미가 가까운 \w{drive}보다 \w{the}와 더 ``관련 있는'' 단어가 되어 버린다.
+\end{itemize}
+그래서 각 단어가 \textbf{원래 얼마나 자주 나오는가}에 비해 함께 나온 횟수가 얼마나 많은지를 본다.
+이것이 \textbf{점별 상호정보량} (PMI)이다:
+\[
+\operatorname{PMI}(x,y)=\log_2\frac{P(x,y)}{P(x)P(y)}=\log_2\frac{C(x,y)\,N}{C(x)\,C(y)} .
+\]
+\begin{itemize}
+\item $C(x,y)$: 동시발생 횟수, \ $C(x)=\sum_yC(x,y)$: 단어 $x$의 행의 합, \ $N=\sum_{x,y}C(x,y)$: 전체의 합.
+\item 두 단어가 서로 무관하게 나오면 $P(x,y)=P(x)P(y)$이므로 PMI는 $0$이다.
+우연보다 자주 함께 나오면 양수가 된다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PPMI}
+한 번도 함께 나오지 않으면 $C(x,y)=0$이라 $\log_20=-\infty$가 된다.
+그래서 음수는 $0$으로 바꾼 \textbf{PPMI} (positive PMI)를 쓴다:
+\[
+\operatorname{PPMI}(x,y)=\max\big(0,\ \operatorname{PMI}(x,y)\big).
+\]
+\begin{keybox}[예 (\texttt{count\_based.py}의 4번 셀)]
+예문의 동시발생 행렬에서
+$N=14$, \ $C(\w{say})=4$, \ $C(\w{goodbye})=2$, \ $C(\w{say},\w{goodbye})=1$이므로
+\[
+\operatorname{PPMI}(\w{say},\w{goodbye})=\log_2\frac{1\cdot14}{4\cdot2}=\log_21.75=0.807 .
+\]
+\w{you}는 맥락이 \w{say} 하나뿐이므로
+$\operatorname{PPMI}(\w{you},\w{say})=\log_2\frac{1\cdot14}{1\cdot4}=1.807$로 더 크다.
+\end{keybox}
+\w{say}는 여러 단어와 함께 나오므로 특정 한 단어와의 관계는 그만큼 약하게 평가된다.
+\end{frame}
+
+\begin{frame}{차원 줄이기의 아이디어}
+\begin{itemize}
+\item PPMI 행렬의 각 행을 단어 벡터로 쓸 수 있다. 그러나 벡터가 $V$차원이다 (PTB는 $V=10{,}000$).
+\item 게다가 대부분의 원소가 $0$이다. 한 단어의 맥락에 나오는 단어는 어휘의 일부뿐이다.
+\item 중요한 정보는 남기고 차원을 줄인다. 데이터가 넓게 퍼진 방향을 새로운 축으로 잡는다.
+\end{itemize}
+\pfig[3.4cm]{figures/svd_idea.png}
+\figcap{점마다 숫자 두 개 (왼쪽) 대신, 데이터가 넓게 퍼진 축 위의 위치 하나 (오른쪽)로 나타낸다}
+\end{frame}
+
+\begin{frame}{특잇값 분해 (SVD)}
+행렬 $X$를 세 행렬의 곱으로 나눈다:
+\[
+X=USV\T .
+\]
+\begin{itemize}
+\item $U$와 $V$: 열들이 서로 수직인 단위벡터인 행렬 (직교행렬).
+\item $S$: 대각행렬. 대각 원소 (\textbf{특잇값})가 큰 것부터 놓인다.
+\item 특잇값은 그 축의 ``중요도''이다.
+\end{itemize}
+큰 것 $k$개만 남기고 나머지를 버리면
+\[
+X\approx U_kS_kV_k\T
+\]
+($U_k$, $V_k$는 앞쪽 $k$개 열, $S_k$는 앞쪽 $k$개 특잇값).
+이것은 계수 (rank)가 $k$인 행렬 중 $X$에 가장 가까운 것이다.
+\end{frame}
+
+\begin{frame}{SVD로 단어 벡터 만들기}
+\sfig[4.2cm]{svd_trunc}
+\figcap{$U$의 앞쪽 $k$개 열과 큰 특잇값 $k$개만 남긴다}
+\vskip2mm
+\begin{itemize}
+\item $U_kS_k$의 $i$번째 행을 단어 $i$의 $k$차원 벡터로 쓴다.
+\item 문서와 단어의 행렬에 같은 일을 하는 방법을 LSA (latent semantic analysis)라 한다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{예문의 단어를 2차원으로}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\pfig[5cm]{figures/count_svd_2d.png}
+\figcap{예문의 단어를 2차원 벡터로 나타낸 것}
+\end{column}
+\begin{column}{0.49\textwidth}
+\begin{itemize}
+\item 예문의 PPMI 행렬의 특잇값: \\
+$(3.168,\ 3.168,\ 2.703,\ 2.703,$ \\
+$\ 1.514,\ 1.514,\ 0)$
+\item 앞의 두 개만 남겨 단어를 2차원 벡터로 만든다 (\texttt{count\_based.py}의 5번 셀).
+\item \w{goodbye}와 \w{i}가 같은 점 $(-1.382,\ 0)$에 있다. 둘 다 맥락이 \w{say}와 \w{and}로 똑같다.
+\item \w{you} $(-1.080,\ 0)$도 가까이 있다.
+\item 7차원 벡터를 2차원으로 줄여도 이런 관계가 남는다.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{큰 말뭉치에 적용하기: PTB}
+PTB 학습용 말뭉치 ($929{,}589$단어, 어휘 $10{,}000$개), 윈도우 크기 $2$, SVD로 $100$차원
+(\texttt{count\_based.py}의 6번 셀, CPU에서 약 $10$초).
+\vskip1mm
+\begin{center}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+단어 & 가장 비슷한 단어 (코사인 유사도) \\
+\midrule
+\w{you} & \w{i} ($0.825$), \w{we} ($0.815$), \w{do} ($0.804$), \w{'d} ($0.734$), \w{something} ($0.729$) \\
+\w{year} & \w{month} ($0.816$), \w{last} ($0.779$), \w{quarter} ($0.770$), \w{earlier} ($0.760$), \w{third} ($0.756$) \\
+\w{car} & \w{auto} ($0.745$), \w{luxury} ($0.689$), \w{truck} ($0.661$), \w{cars} ($0.642$), \w{corsica} ($0.636$) \\
+\w{toyota} & \w{motor} ($0.799$), \w{honda} ($0.699$), \w{mazda} ($0.690$), \w{motors} ($0.686$), \w{nissan} ($0.677$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{keybox}
+인칭대명사끼리, 기간을 나타내는 단어끼리, 자동차와 자동차 회사끼리 모였다.
+단어의 뜻을 아무도 가르쳐 주지 않았는데, \textbf{세기만 해서} 이런 관계가 나왔다.
+\end{keybox}
+\end{frame}
+
+% =================================================
+\section{맞히면서 배우는 단어 벡터: word2vec}
+% =================================================
+
+\begin{frame}{세는 방법의 한계}
+\begin{itemize}
+\item 통계 기반 방법은 말뭉치 \textbf{전체}를 한꺼번에 세어 $V\times V$ 행렬을 만들고, 그 행렬에 SVD를 한다.
+\item 어휘가 $100$만 개이면 행렬은 $100$만 $\times$ $100$만이다.
+$n\times n$ 행렬의 SVD는 계산량이 $n^3$에 비례하므로 쓸 수 없다.
+\item 새 글이 들어오면 처음부터 다시 세고 다시 분해해야 한다.
+\end{itemize}
+\textbf{추론 기반} 방법은 신경망을 쓴다. 미니배치씩 보면서 가중치를 조금씩 고친다.
+지금까지 배운 신경망의 학습과 똑같다.
+\sfig[2.5cm]{count_vs_infer}
+\figcap{통계 기반 (데이터 전체를 한 번에)과 추론 기반 (미니배치로 조금씩)}
+\end{frame}
+
+\begin{frame}{맥락으로 가운데 단어 맞히기}
+신경망에게 주는 문제: 맥락 (주변 단어)을 보여 주고, 가운데에 들어갈 단어를 맞히게 한다.
+\sfig[1.5cm]{guess_center}
+\figcap{맥락 \w{you}, \w{goodbye}를 보고 가운데 단어를 맞힌다}
+\begin{itemize}
+\item 잘 풀려면 ``어떤 단어들이 어떤 맥락에 나오는가''를 알아야 한다. 분포 가설에 따르면 그것이 단어의 의미이다.
+\item 그래서 이 문제를 풀도록 학습시키면 신경망의 가중치에 단어의 의미가 담긴다.
+\end{itemize}
+\begin{keybox}[word2vec의 아이디어]
+문제를 맞히는 것 자체가 목적이 아니라, 맞히는 과정에서 생기는 \textbf{가중치}가 목적이다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{단어를 신경망에 넣기: 원핫 벡터}
+신경망에는 숫자 벡터를 넣어야 한다. 단어 ID를 \textbf{원핫} (one-hot) 벡터로 바꾼다.
+길이가 $V$이고, 자기 ID 자리만 $1$이고 나머지는 $0$인 벡터이다.
+\vskip2mm
+\sfig[4.6cm]{onehot_table}
+\figcap{단어, 단어 ID, 원핫 벡터}
+\end{frame}
+
+\begin{frame}{원핫 벡터와 행렬의 곱}
+원핫 벡터 $\vect c$에 가중치 행렬 $W$ ($V\times H$)를 곱하면 $1$인 자리의 \textbf{행 하나}가 그대로 나온다.
+\sfig[3.9cm]{onehot_times_W}
+\figcap{원핫 벡터와 $W$의 곱은 $W$의 한 행을 꺼내는 것이다}
+\vskip1mm
+\begin{keybox}
+원핫 입력에 대한 Linear 층은 ``단어 ID에 해당하는 행 꺼내기''이다. 그 행이 그 단어의 벡터가 된다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{CBOW 모델}
+맥락으로 가운데 단어를 맞히는 신경망을 \textbf{CBOW} (continuous bag-of-words) 모델이라 한다.
+맥락이 두 단어 (윈도우 크기 $1$)이면:
+\vskip1mm
+\begin{enumerate}
+\item 맥락의 두 단어를 각각 원핫 벡터 $\vect c_1,\vect c_2$로 바꾼다.
+\item 같은 가중치 $W_{\text{in}}$ ($V\times H$)을 곱한다. 두 단어의 벡터 (행)가 나온다.
+\item 두 벡터를 \textbf{평균}한다:
+$\vect h=\tfrac12(\vect c_1W_{\text{in}}+\vect c_2W_{\text{in}})$. 이것이 은닉층이다.
+\item $W_{\text{out}}$ ($H\times V$)을 곱해 단어마다 점수를 낸다: $\vect s=\vect hW_{\text{out}}$.
+\item softmax로 확률을 만들고, 정답 단어와의 cross-entropy를 loss로 쓴다.
+\end{enumerate}
+\vskip1mm
+학습이 끝나면 $W_{\text{in}}$의 각 행이 각 단어의 벡터이다.
+\end{frame}
+
+\begin{frame}{CBOW 모델의 구조}
+\sfig[5.6cm]{cbow}
+\figcap{$V=7$, $H=3$. 맥락 \w{you}, \w{goodbye}로 \w{say}를 맞힌다.
+파란 선은 원핫 벡터의 $1$에서 나가는 연결이다 (그 행만 쓰인다).
+오른쪽 확률은 학습한 모델의 값이다}
+\end{frame}
+
+\begin{frame}{분산 표현}
+\begin{itemize}
+\item $H$는 어휘 크기 $V$보다 작게 잡는다. 그래야 단어의 정보가 작은 벡터로 \textbf{압축}된다.
+\item 학습이 끝나면 $W_{\text{in}}$의 각 행이 단어의 벡터이다. 이것을 단어의 \textbf{분산 표현} (distributed representation)이라 부른다.
+\end{itemize}
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+& 원핫 벡터 & 분산 표현 \\
+\midrule
+차원 & $V$ & $H$ ($<V$) \\
+성분 & 한 성분만 $1$ (희소, sparse) & 모든 성분이 실수 값 (밀집, dense) \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{remarkbox}[이름의 뜻: continuous bag-of-words]
+\small
+\begin{itemize}
+\item \textbf{bag-of-words} (단어 가방): 단어들을 순서 없이 가방에 담은 것처럼 다룬다.
+맥락의 벡터들을 \textbf{평균}하므로 순서가 사라진다.
+\item \textbf{continuous} (연속): 예전의 bag-of-words는 단어의 개수를 세는 표현이었다.
+CBOW는 단어를 실수 값의 벡터로 나타내고 그것을 평균한다.
+\end{itemize}
+\end{remarkbox}
+\end{frame}
+
+\begin{frame}{학습 데이터}
+말뭉치의 각 위치에서 맥락과 정답 (타깃)을 뽑는다. 예문에서는 $6$개의 학습 예가 나온다.
+\sfig[4.3cm]{ctx_target}
+\figcap{말뭉치에서 맥락 (주황색)과 타깃 (빨간색)을 만든다}
+\vskip1mm
+\begin{keybox}
+정답을 사람이 달아 줄 필요가 없다. 말뭉치 자체에서 문제와 정답이 만들어진다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}[fragile]{PyTorch로 구현하기 (\texttt{cbow\_simple.py})}
+원핫 입력을 그대로 쓰므로 CBOW 그림의 모양 그대로이다.
+\begin{lstlisting}
+class SimpleCBOW(nn.Module):
+    def __init__(self, V, H):
+        super().__init__()
+        self.W_in = nn.Linear(V, H, bias=False)    # shared by both context words
+        self.W_out = nn.Linear(H, V, bias=False)
+
+    def forward(self, X):                          # X: (B, 2, V) one-hot
+        h = 0.5 * (self.W_in(X[:, 0]) + self.W_in(X[:, 1]))   # (B, H): average of two rows
+        return self.W_out(h)                       # (B, V): scores (softmax is in the loss)
+\end{lstlisting}
+\begin{itemize}
+\item 두 맥락 단어가 같은 \texttt{W\_in}을 쓴다. 평균한 $\vect h$에 \texttt{W\_out}을 곱해 점수를 낸다.
+\item $V=7$, $H=3$, 미니배치 $3$, Adam (학습률 $10^{-3}$)으로 $3000$ epoch 학습했다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{학습 결과: loss}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.52\textwidth}
+\pfig[5cm]{figures/cbow_simple_loss.png}
+\figcap{CBOW를 예문 하나로 학습할 때의 loss. 점선은 이 데이터에서 가능한 가장 작은 loss}
+\end{column}
+\begin{column}{0.45\textwidth}
+\begin{itemize}
+\item 학습 전의 loss는 $7$개 단어에 같은 확률을 줄 때의 값 $\log7=1.946$ 근처이다.
+\item epoch마다의 평균 loss: \\
+첫 epoch $1.970$ \\
+$1000$ epoch $0.350$ \\
+마지막 epoch $0.235$
+\item loss는 $0$이 되지 않고 점선에서 멈춘다. 왜일까?
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{loss는 0이 되지 않는다}
+학습이 끝난 모델이 여섯 학습 예의 정답에 준 확률 (\texttt{cbow\_simple.py}의 4번 셀):
+\begin{center}
+\begin{tabular}{@{}llc@{}}
+\toprule
+맥락 & 정답 & 정답의 확률 \\
+\midrule
+(\w{you}, \w{goodbye}) & \w{say} & $0.997$ \\
+\rowcolor{softyellow}
+(\w{say}, \w{and}) & \w{goodbye} & $0.498$ \\
+(\w{goodbye}, \w{i}) & \w{and} & $0.994$ \\
+\rowcolor{softyellow}
+(\w{and}, \w{say}) & \w{i} & $0.499$ \\
+(\w{i}, \w{hello}) & \w{say} & $0.997$ \\
+(\w{say}, \w{.}) & \w{hello} & $0.997$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+네 개는 거의 $1$인데, 맥락이 (\w{say}, \w{and})와 (\w{and}, \w{say})인 두 예는 $0.5$에서 멈췄다.
+\end{frame}
+
+\begin{frame}{CBOW는 맥락의 순서를 보지 못한다}
+\sfig[2.2cm]{cbow_order}
+\figcap{맥락의 순서만 다른 두 학습 예는 같은 $\vect h$를 만든다}
+\begin{itemize}
+\item 두 맥락은 같은 두 단어의 순서만 다르다. 두 벡터를 평균하므로 $\vect h$가 같고, 출력도 같다.
+\item 정답은 \w{goodbye}와 \w{i}이므로 두 단어에 확률을 $\tfrac12$씩 주는 것이 최선이다.
+그래서 loss는 $(2\log2)/6=0.231$보다 작아질 수 없다 (학습된 모델은 $0.235$).
+\end{itemize}
+\begin{keybox}
+\textbf{맥락의 순서를 보지 못한다}는 것이 bag-of-words의 뜻이고, CBOW의 한계이다.
+순서를 다루는 모델은 2주차에 나온다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{학습된 단어 벡터}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.42\textwidth}
+\pfig[5.2cm]{figures/cbow_simple_W_in.png}
+\figcap{예문으로 학습한 $W_{\text{in}}$ ($7\times3$)}
+\end{column}
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+\item 학습된 $W_{\text{in}}$의 각 행이 단어의 벡터이다.
+\item \w{goodbye}: $(-1.550,\ 1.603,\ -0.934)$ \\
+\w{i}: $(-1.598,\ 1.568,\ -0.973)$ \\
+거의 같다 (코사인 유사도 $1.000$).
+\item \w{you}와 \w{hello}의 벡터도 비슷하다.
+\end{itemize}
+\vskip2mm
+\begin{keybox}
+통계 기반 방법에서처럼, 비슷한 맥락에 쓰이는 단어들이 비슷한 벡터를 갖게 되었다.
+\end{keybox}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{skip-gram 모델}
+\begin{itemize}
+\item CBOW는 맥락으로 가운데 단어를 맞힌다.
+반대로 가운데 단어로 맥락의 단어들을 맞히는 모델이 \textbf{skip-gram}이다.
+\item 문제가 더 어려운 대신, 학습된 단어 벡터의 품질이 더 좋은 경우가 많다. 학습은 CBOW가 더 빠르다.
+\end{itemize}
+\sfig[1.5cm]{cbow_skipgram}
+\vskip2mm
+\begin{remarkbox}[이름의 뜻]
+\begin{itemize}
+\item \textbf{gram}: 그리스어로 ``쓰인 것, 글자''. 연속한 $n$개의 단어 (또는 글자) 묶음을 $n$-gram이라 한다.
+$1$개는 unigram, $2$개는 bigram (\w{the cat}), $3$개는 trigram이다.
+\item \textbf{skip}: 사이의 단어를 \textbf{건너뛴} 쌍도 묶음으로 본다는 뜻이다.
+윈도우 크기가 $2$이면 가운데 단어는 바로 옆 단어뿐 아니라 한 칸 건너의 단어와도 짝이 된다.
+\end{itemize}
+\end{remarkbox}
+\end{frame}
+
+% =================================================
+\section{큰 어휘를 위한 word2vec}
+% =================================================
+
+\begin{frame}{어디가 느린가}
+어휘가 $100$만 개이고 $H=100$이라고 하자.
+\sfig[2.6cm]{big_vocab}
+\figcap{어휘가 $100$만 개일 때의 CBOW 모델과 두 병목}
+\vskip1mm
+\begin{enumerate}
+\item \textbf{입력 쪽}: 원핫 벡터 (길이 $100$만)와 $W_{\text{in}}$ ($100$만 $\times100$)의 곱.
+원핫 벡터는 하나만 빼고 $0$인데도 곱셈을 모두 한다.
+\item \textbf{출력 쪽}: $\vect h$와 $W_{\text{out}}$ ($100\times100$만)의 곱으로 점수 $100$만 개를 계산하고,
+$100$만 개에 대한 softmax를 계산한다. 정답은 하나인데 모든 단어의 점수가 필요하다.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{입력 쪽: Embedding 층}
+원핫 벡터와 행렬의 곱은 행 하나를 꺼내는 것이었다. 그러니 곱하지 말고 \textbf{행을 바로 꺼내면} 된다.
+\vskip1mm
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.6\textwidth}
+\sfig[3.6cm]{embedding_lookup}
+\end{column}
+\begin{column}{0.37\textwidth}
+\begin{itemize}
+\item PyTorch: \texttt{nn.Embedding(V, H)}. 단어 ID를 넣으면 그 행을 돌려준다.
+\item 원핫 벡터를 만들 필요가 없다.
+\item 역전파에서도 꺼낸 행에만 gradient가 전달된다.
+\end{itemize}
+\end{column}
+\end{columns}
+\vskip1mm
+\begin{keybox}
+Embedding 층은 ``원핫 입력을 받는 bias 없는 Linear 층''을 빠르게 계산하는 방법이다. 계산 결과는 똑같다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{출력 쪽: 다중 분류를 이진 분류로}
+\begin{itemize}
+\item ``가운데 단어는 $100$만 개 중 무엇인가?'' 대신 ``가운데 단어는 \w{say}인가? (예/아니오)''라고 묻는다.
+\item 그러면 \w{say}의 점수 하나만 계산하면 된다.
+$W_{\text{out}}$에서 \w{say}에 해당하는 벡터와 $\vect h$의 내적이 점수이고, sigmoid로 확률을 만든다:
+\end{itemize}
+\[
+P(\text{정답이 } \w{say})=\sigma(\vect h\cdot\vect w^{\text{out}}_{\w{say}}),\qquad \sigma(x)=\frac1{1+e^{-x}} .
+\]
+\sfig[2.7cm]{negsample_one}
+\figcap{정답 단어 하나의 점수만 계산한다}
+\end{frame}
+
+\begin{frame}{이진 분류의 cross-entropy}
+출력 $y=\sigma(\text{점수})$를 ``예''의 확률로 보면, ``아니오''의 확률은 $1-y$이다.
+정답 레이블을 $t$ (``예''이면 $1$, ``아니오''이면 $0$)라 하면 ($\log$는 자연로그)
+\[
+\loss=-\big(t\log y+(1-t)\log(1-y)\big)
+\quad\Longrightarrow\quad
+\begin{cases}
+t=1: & \loss=-\log y\\
+t=0: & \loss=-\log(1-y)
+\end{cases}
+\]
+\begin{itemize}
+\item 어느 쪽이든 loss는 \textbf{정답 쪽 확률}의 $-\log$이다.
+\item 다중 분류의 cross-entropy도 정답 클래스의 확률의 $-\log$였다.
+이진 분류는 클래스가 ``예''와 ``아니오'' 두 개인 경우일 뿐이다.
+\item 정답 쪽 확률이 $1$에 가까우면 loss는 $0$에 가깝다: $-\log0.9=0.105$, \ $-\log0.1=2.303$.
+\item 가운데 단어가 정말 \w{say}이면 $t=1$이므로 loss는 $-\log\sigma(\vect h\cdot\vect w^{\text{out}}_{\w{say}})$이다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{오답도 가르쳐야 한다: 네거티브 샘플링}
+\begin{itemize}
+\item 정답에 대해서만 학습하면, 신경망은 모든 단어에 ``예''라고 답해도 된다.
+오답 단어에는 ``아니오''라고 답하도록 학습시켜야 한다.
+\item 그러나 오답 $999{,}999$개를 모두 쓰면 다시 느려진다.
+그래서 오답 몇 개 (보통 $5$--$10$개)만 \textbf{무작위로 뽑아} 쓴다. 이것이 \textbf{네거티브 샘플링}이다.
+\end{itemize}
+\sfig[3.7cm]{negsample_pn}
+\figcap{정답 (\w{say})의 출력은 $1$에, 무작위로 뽑은 오답 (\w{you}, \w{hello})의 출력은 $0$에 가까워지도록 학습한다}
+\end{frame}
+
+\begin{frame}{한 학습 예의 loss}
+맥락 하나에 대해 이진 분류를 $K+1$번 한다: 정답 단어 하나 ($t=1$)와 오답 $K$개 ($t=0$).
+\begin{itemize}
+\item 정답의 loss: $-\log\sigma(\vect h\cdot\vect w^{\text{out}}_{\text{정답}})$
+\item 오답 $k$의 loss: $-\log\big(1-\sigma(\vect h\cdot\vect w^{\text{out}}_{\text{오답}_k})\big)$
+\end{itemize}
+이 $K+1$개를 더한 것이 한 학습 예의 loss이다:
+\[
+\loss=-\log\sigma(\vect h\cdot\vect w^{\text{out}}_{\text{정답}})
+-\sum_{k=1}^{K}\log\big(1-\sigma(\vect h\cdot\vect w^{\text{out}}_{\text{오답}_k})\big).
+\]
+\begin{itemize}
+\item 첫 항을 줄이려면 정답 단어의 점수를 올려야 하고, 둘째 항을 줄이려면 오답 단어의 점수를 내려야 한다.
+\end{itemize}
+\begin{keybox}
+계산량이 어휘 크기와 상관없이 $K+1$개 단어로 줄었다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{예: 정답 하나와 오답 둘}
+\sfig[4.4cm]{negsample_loss}
+\figcap{정답 하나와 오답 둘의 cross-entropy를 더해 한 학습 예의 loss를 만든다}
+\vskip1mm
+세 출력이 $0.9$, $0.2$, $0.1$일 때 (설명을 위해 정한 값):
+\begin{itemize}
+\item 정답의 loss: $-\log0.9=0.105$
+\item 오답의 loss: $-\log(1-0.2)=0.223$, \ $-\log(1-0.1)=0.105$
+\item 합: $0.434$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{오답은 어떻게 뽑는가}
+\begin{itemize}
+\item 말뭉치에서 자주 나오는 단어일수록 자주 뽑는다.
+드문 단어는 실제로도 드물게 나오므로 오답으로 연습할 필요가 적다.
+\item 다만 빈도 그대로 쓰지 않고 $0.75$제곱을 해서 다시 정규화한다:
+\ $P'(w)=\dfrac{P(w)^{0.75}}{\sum_{w'}P(w')^{0.75}}$
+\item 그러면 드문 단어도 조금 더 뽑힌다. 예: $(0.7,\ 0.29,\ 0.01)\ \to\ (0.642,\ 0.332,\ 0.027)$.
+\end{itemize}
+\pfig[3.3cm]{figures/neg_sampling_dist.png}
+\figcap{PTB에서 단어의 빈도 $P(w)$와 $0.75$제곱 후의 확률 (세로축은 로그 눈금)}
+\end{frame}
+
+\begin{frame}[fragile]{PTB로 학습하기: 모델 (\texttt{cbow\_ptb.py})}
+$W_{\text{in}}$과 $W_{\text{out}}$을 모두 \texttt{nn.Embedding}으로 두고,
+단어 $K$개 (정답 하나와 오답들)의 점수를 한 번에 계산한다.
+\begin{lstlisting}
+class CBOW(nn.Module):
+    def __init__(self, V, H):
+        super().__init__()
+        self.W_in = nn.Embedding(V, H)               # row i = vector of word i (input side)
+        self.W_out = nn.Embedding(V, H)              # row i = vector of word i (output side)
+        nn.init.normal_(self.W_in.weight, std=0.01)
+        nn.init.normal_(self.W_out.weight, std=0.01)
+
+    def forward(self, ctx, words):                   # ctx (B, 10), words (B, K) -> scores (B, K)
+        h = self.W_in(ctx).mean(dim=1)               # (B, H): average of the context vectors
+        return (self.W_out(words) * h[:, None, :]).sum(dim=-1)   # dot products h . w_out
+\end{lstlisting}
+\begin{itemize}
+\item 맥락은 좌우 다섯 단어씩 $10$개이다. 그 벡터들의 평균이 $\vect h$이다.
+\item 출력 쪽은 필요한 단어 $K$개의 행만 꺼내 $\vect h$와 내적한다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{학습 루프: 정답 하나와 오답 다섯}
+맥락마다 정답 단어 하나와 무작위로 뽑은 오답 $5$개를 나란히 놓고, 정답에는 $1$, 오답에는 $0$을 목표로 준다.
+\begin{lstlisting}
+neg = torch.multinomial(p_neg, len(b) * n_neg, replacement=True).view(len(b), n_neg)
+words = torch.cat([target[b, None], neg], dim=1)                       # (B, 6)
+labels = torch.zeros_like(words, dtype=torch.float32); labels[:, 0] = 1
+scores = model(contexts[b], words)
+loss = F.binary_cross_entropy_with_logits(scores, labels, reduction="sum") / len(b)
+\end{lstlisting}
+\begin{itemize}
+\item \texttt{torch.multinomial}: $0.75$제곱한 분포 \texttt{p\_neg}에서 오답을 뽑는다.
+\item \texttt{F.binary\_cross\_entropy\_with\_logits}: 점수에 sigmoid를 적용하고 이진 cross-entropy를 계산한다.
+\item \texttt{reduction="sum"}으로 모두 더한 뒤 \texttt{len(b)}로 나누므로,
+결과는 한 학습 예의 loss (정답 $1$개와 오답 $5$개의 loss의 합)의 미니배치 평균이다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{학습 결과}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.45\textwidth}
+\begin{itemize}
+\item 윈도우 크기 $5$ (좌우 다섯 단어씩), $H=100$, 오답 $5$개, 미니배치 $100$, Adam (학습률 $10^{-3}$), $10$ epoch.
+\item GPU (RTX 3050)에서 약 $6$분.
+\item loss (정답 하나와 오답 다섯 개의 loss의 합): \\
+첫 epoch 끝 $2.260$ \\
+마지막 epoch 끝 $1.478$
+\end{itemize}
+\end{column}
+\begin{column}{0.52\textwidth}
+\pfig[5cm]{figures/cbow_ptb_loss.png}
+\figcap{PTB로 학습한 CBOW의 loss}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{학습된 벡터로 비슷한 단어 찾기}
+학습된 $W_{\text{in}}$의 행으로 비슷한 단어를 찾으면:
+\vskip1mm
+\begin{center}
+\small
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}ll@{}}
+\toprule
+단어 & 가장 비슷한 단어 (코사인 유사도) \\
+\midrule
+\w{you} & \w{we} ($0.732$), \w{i} ($0.667$), \w{your} ($0.608$), \w{they} ($0.576$), \w{anything} ($0.571$) \\
+\w{year} & \w{month} ($0.855$), \w{week} ($0.784$), \w{summer} ($0.753$), \w{spring} ($0.744$), \w{decade} ($0.696$) \\
+\w{car} & \w{luxury} ($0.613$), \w{truck} ($0.597$), \w{window} ($0.589$), \w{vehicle} ($0.583$), \w{cars} ($0.572$) \\
+\w{toyota} & \w{coated} ($0.633$), \w{honda} ($0.627$), \w{chevrolet} ($0.611$), \w{f-14} ($0.611$), \w{weyerhaeuser} ($0.606$) \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\begin{itemize}
+\item \w{year}에 기간을 나타내는 단어들이 모인 것처럼 대부분 그럴듯하다.
+\item 그러나 \w{toyota}의 \w{coated}처럼 엉뚱한 단어도 섞여 있다.
+PTB는 약 $93$만 단어로, 단어 벡터를 학습하기에는 작은 말뭉치이다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{단어 벡터로 유추 문제 풀기}
+word2vec의 단어 벡터는 비슷한 단어끼리 모일 뿐 아니라, 단어 사이의 \textbf{관계}도 벡터의 차이로 나타낸다고 알려져 있다.
+\vskip2mm
+``\w{man} : \w{woman} = \w{king} : ?''를 벡터로 쓰면
+\[
+\vect v_{\w{woman}}-\vect v_{\w{man}}+\vect v_{\w{king}}\ \text{에 가장 가까운 단어를 찾는 문제}
+\]
+\sfig[3.4cm]{analogy}
+\figcap{\w{man}에서 \w{woman}으로 가는 벡터를 \w{king}에 더하면 \w{queen}에 가까워지기를 기대한다}
+\end{frame}
+
+\begin{frame}{PTB로 학습한 벡터로 풀어 보면 (\texttt{cbow\_ptb.py}의 4번 셀)}
+\begin{center}
+\footnotesize
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}ll@{}}
+\toprule
+문제 & 답의 후보 (코사인 유사도) \\
+\midrule
+\w{take} : \w{took} = \w{go} : ? & \w{went} ($0.669$), \w{came} ($0.591$), \w{ran} ($0.585$), \w{got} ($0.551$), \w{began} ($0.541$) \\
+\w{car} : \w{cars} = \w{child} : ? & \w{parents} ($0.630$), \w{women} ($0.627$), \w{males} ($0.619$), \w{children} ($0.616$), \w{adults} ($0.614$) \\
+\w{man} : \w{king} = \w{woman} : ? & \w{bike} ($0.614$), \w{max} ($0.566$), \w{lexington} ($0.554$), \w{horse} ($0.550$), \w{artist} ($0.545$) \\
+\w{good} : \w{better} = \w{bad} : ? & \w{greater} ($0.616$), \w{less} ($0.568$), \w{more} ($0.561$), \w{rather} ($0.523$), \w{ever} ($0.487$) \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{center}
+\begin{itemize}
+\item 과거형 (\w{went})은 맞혔고, 복수형은 사람을 나타내는 복수 명사들 사이에 \w{children}이 $4$번째로 나왔다.
+\item \w{king}--\w{queen}과 \w{better}--\w{worse}는 풀지 못했다.
+경제 신문 기사인 PTB의 약 $93$만 단어 중에 \w{king}은 $43$번, \w{queen}은 $7$번밖에 나오지 않는다.
+\end{itemize}
+\begin{keybox}
+수십억 단어의 말뭉치로 학습한 단어 벡터는 이런 문제를 훨씬 잘 푼다.
+말뭉치의 크기와 내용이 단어 벡터의 품질을 정한다.
+\end{keybox}
+\end{frame}
+
+\begin{frame}{단어 벡터와 지금의 언어모델}
+word2vec은 2013년에 나왔다 (Mikolov et al., 2013). ChatGPT 같은 지금의 언어모델과는 어떤 관계일까?
+\begin{itemize}
+\item 단어마다 벡터 하나를 정해 두는 word2vec 그대로의 모습은 많이 쓰이지 않는다.
+\item 그러나 이 장의 부품과 생각은 지금의 언어모델 \textbf{안에} 그대로 들어 있다.
+\end{itemize}
+\vskip1mm
+\begin{keybox}[왜 밀집 벡터인가]
+\begin{itemize}
+\item 원핫 벡터에서는 모든 단어가 서로 똑같이 다르다.
+\w{cat}과 \w{dog}의 거리나 \w{cat}과 \w{stock}의 거리가 같다.
+\item 밀집 벡터에서는 비슷하게 쓰이는 단어가 가까이 있다.
+학습 데이터에서 \w{the cat sat}만 본 신경망도, \w{dog}의 벡터가 \w{cat}과 가까우면 \w{the dog sat}을 비슷하게 처리할 수 있다.
+\item 신경망이 글을 다룰 때 밀집 벡터에서 시작하는 이유이고, 이것은 지금도 같다.
+\end{itemize}
+\end{keybox}
+\end{frame}
+
+\begin{frame}{지금도 그대로 쓰는 것 (1): 첫 층과 마지막 층}
+\begin{columns}[c,onlytextwidth]
+\begin{column}{0.46\textwidth}
+\sfig[5.2cm]{w2v_vs_gpt}
+\figcap{입력 쪽 Embedding과 출력 쪽 점수 계산은 같고, 가운데의 ``평균''이 Transformer 블록으로 바뀌었다}
+\end{column}
+\begin{column}{0.51\textwidth}
+\begin{itemize}
+\item \textbf{Embedding 층.} ChatGPT를 포함한 모든 언어모델의 첫 층은 \texttt{nn.Embedding}이다.
+입력한 글을 토큰 (단어 조각, 3주차)으로 자르고, 토큰 ID로 표의 행을 꺼낸다.
+\item \textbf{점수 계산.} 마지막 층은 $W_{\text{out}}$처럼 벡터와 각 토큰의 벡터의 내적으로 점수를 낸다.
+\item GPT-2처럼 첫 층과 마지막 층이 같은 행렬을 함께 쓰는 모델도 있다.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{지금도 그대로 쓰는 것 (2)}
+\begin{itemize}
+\item \textbf{정답 없는 글로 학습하기.}
+word2vec은 사람이 정답을 달지 않은 글에서 문제와 정답을 만들었다.
+GPT의 사전학습 (pre-training)도 같다. 차이는 맞히는 것이 가운데 단어가 아니라 \textbf{다음 토큰}이라는 것이다.
+\item \textbf{먼저 배우고 옮겨 쓰기.}
+큰 말뭉치로 먼저 학습한 것을 정답이 붙은 데이터가 적은 과제에 옮겨 쓰는 방법을 \textbf{전이 학습} (transfer learning)이라 한다.
+처음에는 단어 벡터를 옮겨 썼고, 지금은 사전학습한 언어모델 전체를 옮겨 쓴다.
+\item \textbf{벡터로 바꾸어 비슷한 것 찾기.}
+글을 벡터로 바꾸고 코사인 유사도로 비슷한 것을 찾는 방법은 지금 검색과 추천의 기본이다.
+\begin{itemize}
+\item 대화형 언어모델이 문서를 찾아 보고 답하는 방법 (\textbf{RAG}, retrieval-augmented generation)도 이것이다.
+\item 문서들을 미리 벡터로 바꾸어 저장해 두고 (vector database), 질문의 벡터와 코사인 유사도가 큰 문서를 찾아 언어모델에 함께 넣는다.
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{형태를 바꾸어 쓰는 것}
+\begin{itemize}
+\item \textbf{단어 벡터에서 문장, 문서 벡터로.}
+RAG에서 쓰는 벡터는 문장이나 문서 전체의 벡터이다. 이 벡터를 만드는 \textbf{임베딩 모델}은 Transformer이다 (3주차).
+\item \textbf{네거티브 샘플링에서 대조 학습으로.}
+맞는 쌍의 점수는 높이고 무작위로 뽑은 틀린 쌍의 점수는 낮춘다는 생각을 문장에 쓴다.
+뜻이 같은 문장 쌍 (질문과 그 답이 있는 문서 등)은 가깝게, 무작위 문장 쌍은 멀게 학습한다.
+이것이 \textbf{대조 학습} (contrastive learning)이고, 임베딩 모델 대부분이 이렇게 학습한다.
+\item \textbf{글이 아닌 것으로.}
+그림과 그 설명 글을 같은 공간의 가까운 벡터로 만드는 모델 (CLIP)도 대조 학습으로 학습한다.
+그림도 함께 읽는 언어모델은 그림 조각을 토큰 벡터와 같은 크기의 벡터로 바꾸어 넣는다.
+\item \textbf{단어가 아닌 열에 word2vec을.}
+사용자가 차례로 본 상품이나 들은 노래의 열을 문장처럼 보고 학습하면, 함께 소비되는 상품끼리 가까운 벡터를 얻는다 (item2vec).
+그래프 위를 걸어 다닌 노드의 열에 쓰면 node2vec이다.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{이제 거의 쓰지 않는 것}
+\begin{itemize}
+\item \textbf{고정된 단어 벡터를 다른 모델의 입력으로 넣기.}
+2013--2017년에는 word2vec이나 GloVe로 미리 학습한 단어 벡터를 RNN의 입력으로 쓰는 것이 표준이었다.
+2018년 BERT, GPT 이후로는 사전학습한 Transformer 전체를 가져다 쓴다.
+고정된 단어 벡터는 \w{river bank}의 \w{bank}와 \w{bank account}의 \w{bank}를 구별하지 못하기 때문이다 (3주차).
+\item \textbf{PPMI와 SVD.}
+지금은 실용보다 이해를 위한 출발점이다. 다만 둘은 생각보다 가깝다.
+네거티브 샘플링을 쓴 skip-gram은 사실상 PMI 행렬을 분해하는 것과 같다는 결과가 알려져 있다 (Levy \& Goldberg, 2014).
+세는 방법과 맞히는 방법은 같은 정보를 다른 길로 얻는 셈이다.
+\end{itemize}
+\vskip1mm
+\begin{remarkbox}
+고정된 단어 벡터도 완전히 사라지지는 않았다. 계산이 가볍고 빨라서, 휴대전화 안에서 하는 간단한 글 분류나 언어 판별,
+그리고 여러 시대의 말뭉치에서 단어 뜻의 변화나 편향을 재는 연구에 쓰인다.
+\end{remarkbox}
+\end{frame}
+
+\begin{frame}{이 장의 내용과 지금의 언어모델}
+\centering
+\begin{tabular}{@{}p{42mm}p{88mm}@{}}
+\toprule
+이 장의 내용 & 지금의 언어모델에서 \\
+\midrule
+Embedding 층 & 모든 언어모델의 첫 층 (토큰 ID $\to$ 벡터) \\
+$W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
+정답 없는 글로 학습 & 사전학습 (다음 토큰 맞히기) \\
+네거티브 샘플링 & 대조 학습 (임베딩 모델, CLIP) \\
+코사인 유사도로 찾기 & 검색, 추천, RAG \\
+단어마다 고정된 벡터 & 문맥에 따라 달라지는 벡터로 대체 (3주차) \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{남은 문제}
+\begin{itemize}
+\item 단어 벡터는 단어 \textbf{하나}의 표현이다.
+\item 문장을 나타내려고 단어 벡터들을 평균하면, CBOW에서 본 것처럼 단어의 순서가 사라진다.
+\item \w{dog bites man}과 \w{man bites dog}은 같은 단어들로 되어 있지만 뜻이 다르다.
+\end{itemize}
+\vskip2mm
+\begin{keybox}[이 문제를 푸는 두 가지 방법]
+\begin{itemize}
+\item 순서가 있는 단어의 열을 차례로 읽는다: \textbf{RNN} (2주차)
+\item 문맥을 보고 단어의 벡터를 바꾼다: \textbf{Transformer} (3주차)
+\end{itemize}
+\end{keybox}
+\end{frame}
+
+\begin{frame}
+\vskip2mm
+\begin{mlbox}[1주차 정리]
+\small
+\begin{itemize}
+\item 단어의 의미는 주변 단어 (맥락)로 정해진다 (분포 가설).
+\item 통계 기반: 동시발생 행렬을 세고, PPMI로 흔한 단어의 영향을 줄이고, SVD로 차원을 줄인다.
+\item 추론 기반 (word2vec): 맥락으로 가운데 단어를 맞히는 신경망 (CBOW)을 학습하면, 입력 쪽 가중치 $W_{\text{in}}$의 행이 단어 벡터가 된다.
+\item CBOW는 맥락의 단어 벡터를 평균하므로 맥락 안의 순서를 보지 못한다 (bag-of-words).
+\item 큰 어휘에서는 원핫 곱 대신 Embedding 층 (행 꺼내기)을, softmax 대신 네거티브 샘플링 (정답 하나와 오답 몇 개의 이진 분류)을 쓴다.
+\item 지금의 언어모델도 Embedding 층으로 시작하고, 정답 없는 글로 사전학습한다.
+고정된 단어 벡터 대신 문맥에 따라 달라지는 벡터를 쓰고, 벡터로 비슷한 것을 찾는 방법은 검색과 RAG에 쓰인다.
+\item 남은 질문: 단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까? (2주차)
+\end{itemize}
+\end{mlbox}
+\end{frame}
+
+\end{document}
