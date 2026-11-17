@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 1 (2): the CBOW model of word2vec on one sentence, with one-hot inputs (as in the figures).
+# Section 3: the CBOW model of word2vec on one sentence, with one-hot inputs (as in the figures).
 #   context (the word on the left and on the right) -> W_in -> average -> W_out -> softmax over the words
 import os; os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 import numpy as np

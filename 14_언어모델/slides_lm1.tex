@@ -2,8 +2,8 @@
 \documentclass[aspectratio=169,11pt]{beamer}
 \input{slides_preamble}
 
-\title[자연어 처리와 언어모델 1주차]{자연어 처리와 언어모델}
-\subtitle{1주차 \texorpdfstring{$\cdot$}{-} 단어를 벡터로}
+\title[자연어 처리와 언어모델]{자연어 처리와 언어모델}
+\subtitle{단어를 벡터로 (1--4절)}
 \date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
 
 \begin{document}
@@ -26,17 +26,17 @@
 지금의 언어모델 (GPT 등)의 핵심인 어텐션과 Transformer까지 간다.
 \end{frame}
 
-\begin{frame}{3주의 흐름}
+\begin{frame}{단원의 흐름}
 \centering
 \small
-\begin{tabular}{@{}lp{54mm}p{68mm}@{}}
+\begin{tabular}{@{}lp{54mm}p{66mm}@{}}
 \toprule
-주 & 질문 & 내용 \\
+절 & 질문 & 내용 \\
 \midrule
 \rowcolor{softblue}
-1주차 & 단어를 어떻게 벡터로 바꾸는가? & 동시발생 행렬, PPMI, SVD, word2vec (CBOW), Embedding, 네거티브 샘플링 \\
-2주차 & 문장을 어떻게 다루는가? & 언어모델, RNN, LSTM, 문장 생성, seq2seq \\
-3주차 & 긴 문장에서 필요한 정보를 어떻게 찾는가? & 어텐션, Transformer, GPT, 토큰 \\
+1--4절 & 단어를 어떻게 벡터로 바꾸는가? & 동시발생 행렬, PPMI, SVD, word2vec (CBOW), Embedding, 네거티브 샘플링 \\
+5--8절 & 문장을 어떻게 다루는가? & 언어모델, RNN, LSTM, 문장 생성, seq2seq \\
+9--11절 & 긴 문장에서 필요한 정보를 어떻게 찾는가? & 어텐션, Transformer, GPT, 토큰 \\
 \bottomrule
 \end{tabular}
 \vskip4mm
@@ -45,7 +45,7 @@
 설명을 위해 정한 값은 그렇다고 표시한다.
 \end{frame}
 
-\begin{frame}{1주차 학습목표}
+\begin{frame}{학습목표}
 \begin{enumerate}
 \item \textbf{분포 가설}: 단어의 의미를 주변 단어로 나타낸다
 \item 동시발생 행렬, 코사인 유사도, PPMI, SVD로 단어 벡터를 \textbf{세어서} 만든다
@@ -56,7 +56,7 @@
 \end{enumerate}
 \end{frame}
 
-\begin{frame}{코드와 데이터 (1주차)}
+\begin{frame}{코드와 데이터}
 코드는 \texttt{code/} 폴더에 있고, 그 폴더에서 실행한다. 그림은 \texttt{figures/}에 저장된다.
 \vskip2mm
 \centering
@@ -492,7 +492,7 @@ $1000$ epoch $0.350$ \\
 \end{itemize}
 \begin{keybox}
 \textbf{맥락의 순서를 보지 못한다}는 것이 bag-of-words의 뜻이고, CBOW의 한계이다.
-순서를 다루는 모델은 2주차에 나온다.
+순서를 다루는 모델은 6절에서 다룬다.
 \end{keybox}
 \end{frame}
 
@@ -808,7 +808,7 @@ word2vec은 2013년에 나왔다 (Mikolov et al., 2013). ChatGPT 같은 지금�
 \begin{column}{0.51\textwidth}
 \begin{itemize}
 \item \textbf{Embedding 층.} ChatGPT를 포함한 모든 언어모델의 첫 층은 \texttt{nn.Embedding}이다.
-입력한 글을 토큰 (단어 조각, 3주차)으로 자르고, 토큰 ID로 표의 행을 꺼낸다.
+입력한 글을 토큰 (단어 조각, 11절)으로 자르고, 토큰 ID로 표의 행을 꺼낸다.
 \item \textbf{점수 계산.} 마지막 층은 $W_{\text{out}}$처럼 벡터와 각 토큰의 벡터의 내적으로 점수를 낸다.
 \item GPT-2처럼 첫 층과 마지막 층이 같은 행렬을 함께 쓰는 모델도 있다.
 \end{itemize}
@@ -836,7 +836,7 @@ GPT의 사전학습 (pre-training)도 같다. 차이는 맞히는 것이 가운�
 \begin{frame}{형태를 바꾸어 쓰는 것}
 \begin{itemize}
 \item \textbf{단어 벡터에서 문장, 문서 벡터로.}
-RAG에서 쓰는 벡터는 문장이나 문서 전체의 벡터이다. 이 벡터를 만드는 \textbf{임베딩 모델}은 Transformer이다 (3주차).
+RAG에서 쓰는 벡터는 문장이나 문서 전체의 벡터이다. 이 벡터를 만드는 \textbf{임베딩 모델}은 Transformer이다 (10절).
 \item \textbf{네거티브 샘플링에서 대조 학습으로.}
 맞는 쌍의 점수는 높이고 무작위로 뽑은 틀린 쌍의 점수는 낮춘다는 생각을 문장에 쓴다.
 뜻이 같은 문장 쌍 (질문과 그 답이 있는 문서 등)은 가깝게, 무작위 문장 쌍은 멀게 학습한다.
@@ -855,7 +855,7 @@ RAG에서 쓰는 벡터는 문장이나 문서 전체의 벡터이다. 이 벡�
 \item \textbf{고정된 단어 벡터를 다른 모델의 입력으로 넣기.}
 2013--2017년에는 word2vec이나 GloVe로 미리 학습한 단어 벡터를 RNN의 입력으로 쓰는 것이 표준이었다.
 2018년 BERT, GPT 이후로는 사전학습한 Transformer 전체를 가져다 쓴다.
-고정된 단어 벡터는 \w{river bank}의 \w{bank}와 \w{bank account}의 \w{bank}를 구별하지 못하기 때문이다 (3주차).
+고정된 단어 벡터는 \w{river bank}의 \w{bank}와 \w{bank account}의 \w{bank}를 구별하지 못하기 때문이다 (11절).
 \item \textbf{PPMI와 SVD.}
 지금은 실용보다 이해를 위한 출발점이다. 다만 둘은 생각보다 가깝다.
 네거티브 샘플링을 쓴 skip-gram은 사실상 PMI 행렬을 분해하는 것과 같다는 결과가 알려져 있다 (Levy \& Goldberg, 2014).
@@ -879,7 +879,7 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 정답 없는 글로 학습 & 사전학습 (다음 토큰 맞히기) \\
 네거티브 샘플링 & 대조 학습 (임베딩 모델, CLIP) \\
 코사인 유사도로 찾기 & 검색, 추천, RAG \\
-단어마다 고정된 벡터 & 문맥에 따라 달라지는 벡터로 대체 (3주차) \\
+단어마다 고정된 벡터 & 문맥에 따라 달라지는 벡터로 대체 (11절) \\
 \bottomrule
 \end{tabular}
 \end{frame}
@@ -893,15 +893,15 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 \vskip2mm
 \begin{keybox}[이 문제를 푸는 두 가지 방법]
 \begin{itemize}
-\item 순서가 있는 단어의 열을 차례로 읽는다: \textbf{RNN} (2주차)
-\item 문맥을 보고 단어의 벡터를 바꾼다: \textbf{Transformer} (3주차)
+\item 순서가 있는 단어의 열을 차례로 읽는다: \textbf{RNN} (6절)
+\item 문맥을 보고 단어의 벡터를 바꾼다: \textbf{Transformer} (10절)
 \end{itemize}
 \end{keybox}
 \end{frame}
 
 \begin{frame}
 \vskip2mm
-\begin{mlbox}[1주차 정리]
+\begin{mlbox}[1--4절 정리]
 \small
 \begin{itemize}
 \item 단어의 의미는 주변 단어 (맥락)로 정해진다 (분포 가설).
@@ -911,7 +911,7 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 \item 큰 어휘에서는 원핫 곱 대신 Embedding 층 (행 꺼내기)을, softmax 대신 네거티브 샘플링 (정답 하나와 오답 몇 개의 이진 분류)을 쓴다.
 \item 지금의 언어모델도 Embedding 층으로 시작하고, 정답 없는 글로 사전학습한다.
 고정된 단어 벡터 대신 문맥에 따라 달라지는 벡터를 쓰고, 벡터로 비슷한 것을 찾는 방법은 검색과 RAG에 쓰인다.
-\item 남은 질문: 단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까? (2주차)
+\item 남은 질문: 단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까? (5절부터)
 \end{itemize}
 \end{mlbox}
 \end{frame}

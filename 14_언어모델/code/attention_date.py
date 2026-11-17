@@ -1,8 +1,8 @@
 # %% 0. Setup
-# Week 3 (1): seq2seq with attention converts dates written in many formats to "YYYY-MM-DD".
+# Section 9: seq2seq with attention converts dates written in many formats to "YYYY-MM-DD".
 #   "Friday, August 26, 1983" -> "1983-08-26"
 #   decoder step t: score s_j = h_t . hs_j for every encoder position j, a = softmax(s), c = sum_j a_j hs_j,
-#   output = Linear([c, h_t]).  Compared with the peeky seq2seq of week 2 (no attention).
+#   output = Linear([c, h_t]).  Compared with the peeky seq2seq of section 8 (no attention).
 import os; os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 import time
 import random
@@ -50,7 +50,7 @@ LQ = max(len(q) for q, _ in pairs)
 chars = sorted(set("".join(q + a for q, a in pairs)) | {" "})
 c2i = {c: i for i, c in enumerate(chars)}
 i2c = {i: c for c, i in c2i.items()}
-Q = torch.tensor([[c2i[c] for c in q.ljust(LQ)] for q, _ in pairs]).flip(1)   # reversed input (week 2)
+Q = torch.tensor([[c2i[c] for c in q.ljust(LQ)] for q, _ in pairs]).flip(1)   # reversed input (section 8)
 A = torch.tensor([[c2i[c] for c in a] for _, a in pairs])
 Q_tr, A_tr, Q_te, A_te = Q[:n_train].to(device), A[:n_train].to(device), Q[n_train:].to(device), A[n_train:].to(device)
 print(f"{len(chars)} characters, question length {LQ}, answer length {A.size(1) - 1}")

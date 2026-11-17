@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 2 (2): seq2seq learns addition from text, one character at a time.  "57+5" -> "62"
+# Section 8: seq2seq learns addition from text, one character at a time.  "57+5" -> "62"
 #   encoder: Embedding -> LSTM, its last hidden state h summarizes the question
 #   decoder: Embedding -> LSTM (starts from h) -> Linear, generates the answer character by character
 #   three versions: baseline, reversed input, reversed input + peeky (h is given to the decoder at every step)

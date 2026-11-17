@@ -1,23 +1,23 @@
 # 자연어 처리와 언어모델
 
-단어 벡터에서 시작해 RNN, seq2seq, 어텐션, Transformer, GPT까지 가는 3주 분량의 강의 노트, 슬라이드와 코드.
+단어 벡터에서 시작해 RNN, seq2seq, 어텐션, Transformer, GPT까지 가는 강의 노트, 슬라이드와 코드.
 
 - `main.pdf` : 강의 노트 (`main.tex`를 XeLaTeX로 컴파일한 것)
-  - 1주차: 단어를 벡터로
+  - 단어를 벡터로
     1. 단어의 의미를 어떻게 표현할까
     2. 세어서 만드는 단어 벡터
     3. 맞히면서 배우는 단어 벡터: word2vec
     4. 큰 어휘를 위한 word2vec
-  - 2주차: 문장을 다루는 신경망
+  - 문장을 다루는 신경망
     5. 언어모델
     6. RNN
     7. LSTM: 오래 기억하는 RNN
     8. 문장 생성과 seq2seq
-  - 3주차: 어텐션과 Transformer
+  - 어텐션과 Transformer
     9. 어텐션
     10. 어텐션만으로: Transformer
     11. GPT: Transformer로 만든 언어모델
-- `slides_lm1.pdf`, `slides_lm2.pdf`, `slides_lm3.pdf` : 1–3주차 강의 슬라이드 (`slides_lm1.tex` 등, 공통 설정은 `slides_preamble.tex`)
+- `slides_lm1.pdf`, `slides_lm2.pdf`, `slides_lm3.pdf` : 강의 슬라이드. 노트의 1–4절, 5–8절, 9–11절 (`slides_lm1.tex` 등, 공통 설정은 `slides_preamble.tex`)
 - `code/` : 노트의 모든 코드. `code/` 폴더에서 실행하면 그림은 `figures/`에 저장된다.
 - `figures/` : 노트와 슬라이드에 들어간 그래프 (코드가 만든 것)
 - `tikz/` : 노트와 슬라이드에 들어간 그림 (TikZ, `main.tex`와 슬라이드가 읽어 들인다)

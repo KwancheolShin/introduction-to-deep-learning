@@ -16,8 +16,8 @@
   \node[font=\scriptsize] at (1,1.18) {weights at \texttt{sat}};
   \end{tikzpicture}}
 
-\title[자연어 처리와 언어모델 3주차]{자연어 처리와 언어모델}
-\subtitle{3주차 \texorpdfstring{$\cdot$}{-} 필요한 곳을 찾아 보기: 어텐션과 Transformer}
+\title[자연어 처리와 언어모델]{자연어 처리와 언어모델}
+\subtitle{필요한 곳을 찾아 보기: 어텐션과 Transformer (9--11절)}
 \date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
 
 \begin{document}
@@ -25,7 +25,7 @@
 % =================================================
 \begin{frame}[plain]\titlepage\end{frame}
 
-\begin{frame}{지난주 복습}
+\begin{frame}{복습: 문장을 다루는 신경망 (5--8절)}
 \begin{itemize}
 \item \textbf{언어모델}: 앞의 단어들로 다음 단어의 확률을 계산한다.
   성능은 퍼플렉서티로 잰다.
@@ -43,8 +43,8 @@ Encoder는 입력 문장이 아무리 길어도 \textbf{고정 길이 벡터 $\v
 \end{remarkbox}
 \end{frame}
 
-\begin{frame}{이번 주의 질문}
-\begin{keybox}[이번 주의 질문]
+\begin{frame}{여기서 다룰 질문}
+\begin{keybox}[여기서 다룰 질문]
 \begin{itemize}
 \item 번역문의 단어를 하나 쓸 때마다
   \textbf{입력 문장의 필요한 부분을 직접 찾아 보게} 할 수 없을까?
@@ -58,10 +58,10 @@ Encoder는 입력 문장이 아무리 길어도 \textbf{고정 길이 벡터 $\v
 \end{itemize}
 \end{keybox}
 \vskip2mm
-2주차의 seq2seq에서 출발해, 지금의 언어모델 (GPT 등)의 핵심인 어텐션과 Transformer까지 간다.
+8절의 seq2seq에서 출발해, 지금의 언어모델 (GPT 등)의 핵심인 어텐션과 Transformer까지 간다.
 \end{frame}
 
-\begin{frame}{3주차 학습목표}
+\begin{frame}{학습목표}
 \begin{enumerate}
 \item 고정 길이 벡터의 한계와, 어텐션이 그것을 푸는 방법: 내적, softmax, 가중합
 \item 어텐션을 넣은 seq2seq의 구조와 구현, 날짜 변환에서 어텐션 가중치 읽기
@@ -245,7 +245,7 @@ logits = self.out(torch.cat([c, h], dim=2))
 
 \begin{frame}{결과: 엿보기 seq2seq와 어텐션 seq2seq}
 글자 Embedding $16$차원, LSTM $256$차원, 입력 뒤집기, Adam, $10$ epoch.
-비교 대상은 2주차의 엿보기 seq2seq이다.
+비교 대상은 8절의 엿보기 seq2seq이다.
 \vskip1mm
 \begin{columns}[c,onlytextwidth]
 \begin{column}{0.47\textwidth}
@@ -390,7 +390,7 @@ RNN을 없애고 \textbf{어텐션만으로} Encoder와 Decoder를 만든다.
 =(0.3333,\ 0.3333)
 \]
 \begin{itemize}
-\item 1주차의 CBOW가 맥락의 단어 벡터들을 평균한 것과 같다.
+\item 3절의 CBOW가 맥락의 단어 벡터들을 평균한 것과 같다.
 \item 모든 단어를 똑같이 취급한다. \w{the}도 \w{cat}과 같은 몫을 받는다.
 \end{itemize}
 \vskip2mm
@@ -612,7 +612,7 @@ O=AV=\begin{bmatrix}0&0\\0.5&0\\0.7870&0.1065\end{bmatrix}
 \end{center}
 \begin{itemize}
 \item RNN은 순서대로 읽으니 순서를 알았지만, self-attention은 순서를 모른다.
-\item 1주차의 CBOW가 맥락의 순서를 보지 못한 것과 같은 이유이다.
+\item 3절의 CBOW가 맥락의 순서를 보지 못한 것과 같은 이유이다.
 \end{itemize}
 \vskip2mm
 $\to$ 단어 벡터에 \textbf{위치 정보}를 넣어야 한다.
@@ -748,7 +748,7 @@ $\to$ Feed Forward
 \end{itemize}
 \vskip1mm
 \begin{keybox}[층을 깊게 쌓아도 학습이 되는 이유]
-residual 연결은 CNN 단원의 ResNet, 2주차의 LSTM 기억 셀과 같은 원리로 gradient를 잘 전달한다.
+residual 연결은 CNN 단원의 ResNet, 7절의 LSTM 기억 셀과 같은 원리로 gradient를 잘 전달한다.
 정규화는 각 층의 입력 크기를 일정하게 유지한다.
 \end{keybox}
 \vskip1mm
@@ -766,7 +766,7 @@ RNN이 없으므로 문장의 모든 위치를 동시에 계산한다.
 \begin{itemize}
 \item Transformer는 번역을 위해 만들어졌다.
   원문을 읽는 Encoder와 번역문을 쓰는 Decoder가 있다.
-\item 2주차의 언어모델은 앞의 단어들로 다음 단어를 맞힌다.
+\item 5절의 언어모델은 앞의 단어들로 다음 단어를 맞힌다.
   원문이 따로 없으므로 \textbf{Encoder가 필요 없다}.
 \item Decoder 블록에서 Encoder를 보는 어텐션을 빼면
   causal mask를 쓴 self-attention과 Feed Forward가 남는다.
@@ -945,14 +945,14 @@ Feed Forward & mixture of experts (MoE)
 \item 블록 하나의 $121{,}300$개: 어텐션의 Linear 네 개 ($4\times10{,}100$),
   Feed Forward ($40{,}400+40{,}100$), LayerNorm 두 개 ($2\times200$).
 \item 가중치의 대부분은 단어 Embedding과 출력층에 있다.
-  2주차의 LSTM 언어모델 ($2{,}090{,}800$개)도 마찬가지로, LSTM 계층의 가중치는 $80{,}800$개뿐이다.
+  7절의 LSTM 언어모델 ($2{,}090{,}800$개)도 마찬가지로, LSTM 계층의 가중치는 $80{,}800$개뿐이다.
 \end{itemize}
 \end{frame}
 
 \subsection{PTB로 학습하기: RNN, LSTM과 비교}
 
 \begin{frame}{PTB로 학습하기}
-2주차와 같은 PTB를 같은 설정 (벡터 $100$차원, Adam, 학습률 $10^{-3}$, gradient clipping,
+7절과 같은 PTB를 같은 설정 (벡터 $100$차원, Adam, 학습률 $10^{-3}$, gradient clipping,
 $10$ epoch)으로 학습한다 (\texttt{gpt\_ptb.py}). 블록 $2$개, head $4$개, $T=64$.
 \vskip2mm
 미니배치를 만드는 방법만 다르다.
@@ -1011,7 +1011,7 @@ GPT & $2{,}259{,}000$ & $151.3$ & $139.7$ \\
 \end{frame}
 
 \begin{frame}{글 이어 쓰기}
-생성 방법은 2주차와 같다 (\texttt{gpt\_ptb.py}의 5번 셀).
+생성 방법은 8절과 같다 (\texttt{gpt\_ptb.py}의 5번 셀).
 \begin{enumerate}
 \item 지금까지의 글 (최대 $T$단어)을 넣는다.
 \item 마지막 위치의 점수에서 다음 단어를 뽑는다.
@@ -1062,7 +1062,7 @@ LSTM의 글과 마찬가지로 $\tau$가 작을수록 무난한 구절이 이어
 \subsection{word2vec에서 Transformer로: 고정된 표현과 문맥 표현}
 
 \begin{frame}{고정된 표현과 문맥 표현}
-1주차의 word2vec과 Transformer는 어떤 관계일까?
+3--4절의 word2vec과 Transformer는 어떤 관계일까?
 둘 다 단어를 밀집 벡터로 나타낸다.
 차이는 \textbf{그 벡터가 문맥에 따라 달라지는가}이다.
 \vskip2mm
@@ -1084,7 +1084,7 @@ LSTM의 글과 마찬가지로 $\tau$가 작을수록 무난한 구절이 이어
 \vskip3mm
 \begin{keybox}[공통점]
 둘 다 \textbf{글에서 단어를 맞히는 예측을 학습하다 보니} 단어의 의미가 벡터에 담긴다
-(1주차의 분포 가설).
+(1절의 분포 가설).
 GPT는 word2vec의 생각을 맥락은 훨씬 길게, 모델은 훨씬 크게 키운 것이라고 볼 수 있다.
 \end{keybox}
 \end{frame}
@@ -1108,7 +1108,7 @@ GPT는 word2vec의 생각을 맥락은 훨씬 길게, 모델은 훨씬 크게 �
 \begin{itemize}
 \item 검색, 추천, 그리고 언어모델이 관련 문서를 찾아 답하는 방법 (RAG)에서는
   Transformer로 문장이나 문서 전체를 벡터 하나로 바꾸는 \textbf{임베딩 모델}을 쓴다.
-\item 비슷한 문서를 찾을 때는 1주차와 똑같이 코사인 유사도를 계산한다.
+\item 비슷한 문서를 찾을 때는 2절과 똑같이 코사인 유사도를 계산한다.
 \end{itemize}
 \end{frame}
 
@@ -1233,7 +1233,7 @@ Transformer의 Encoder와 Decoder는 따로 발전했다.
 \begin{itemize}
 \item causal mask 없이 문장 전체를 양쪽에서 본다.
 \item 글을 이어 쓰지는 못한다. 분류나 검색에 쓴다.
-\item 단어 몇 개를 가리고 양쪽 맥락으로 맞히게 학습한다 (1주차의 CBOW와 닮았다).
+\item 단어 몇 개를 가리고 양쪽 맥락으로 맞히게 학습한다 (3절의 CBOW와 닮았다).
 \end{itemize}
 \end{remarkbox}
 \end{column}
@@ -1341,9 +1341,9 @@ PTB의 $93$만 단어로는 \w{king}--\w{queen}을 풀지 못했고 (4절),
 \end{thinkbox}
 \end{frame}
 
-\subsection{3주의 정리}
+\subsection{단원 전체의 정리}
 
-\begin{frame}{3주의 정리: 문제와 해결}
+\begin{frame}{단원 전체의 정리: 문제와 해결}
 각 주제는 앞의 방법의 문제를 하나씩 해결하며 나왔다.
 \begin{center}
 \small
@@ -1375,8 +1375,8 @@ RNN은 한 단어씩 순서대로 계산한다 & 어텐션만 쓴다: Transforme
 \end{itemize}
 \end{frame}
 
-\begin{frame}{3주차 정리 (1)}
-\begin{mlbox}[3주차 정리]
+\begin{frame}{9--11절 정리 (1)}
+\begin{mlbox}[9--11절 정리]
 \small
 \begin{itemize}
 \item seq2seq는 입력을 고정 길이 벡터 하나로 요약하므로 긴 문장에 약하다.
@@ -1394,8 +1394,8 @@ RNN은 한 단어씩 순서대로 계산한다 & 어텐션만 쓴다: Transforme
 \end{mlbox}
 \end{frame}
 
-\begin{frame}{3주차 정리 (2)}
-\begin{mlbox}[3주차 정리]
+\begin{frame}{9--11절 정리 (2)}
+\begin{mlbox}[9--11절 정리]
 \small
 \begin{itemize}
 \item causal mask를 쓴 블록만 쌓아 다음 단어 맞히기를 학습한 것이 GPT이다.

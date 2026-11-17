@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 2 (1): word-level language models on the Penn Treebank -- a plain RNN and an LSTM, same size.
+# Sections 6-8: word-level language models on the Penn Treebank -- a plain RNN and an LSTM, same size.
 #   Embedding -> RNN or LSTM -> Linear(H -> V); loss = cross-entropy of the next word at every position.
 #   Training uses truncated backpropagation through time: 35 time steps per minibatch, the hidden state is
 #   carried over to the next minibatch but the graph is cut (detach).

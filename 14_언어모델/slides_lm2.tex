@@ -1,13 +1,13 @@
 % !TeX program = xelatex
 \documentclass[aspectratio=169,11pt]{beamer}
 \input{slides_preamble}
-\title[자연어 처리와 언어모델 2주차]{자연어 처리와 언어모델}
-\subtitle{2주차 \texorpdfstring{$\cdot$}{-} 문장을 다루는 신경망: RNN}
+\title[자연어 처리와 언어모델]{자연어 처리와 언어모델}
+\subtitle{문장을 다루는 신경망: RNN (5--8절)}
 \date{딥러닝개론및연습 $\cdot$ 2026년 2학기}
 \begin{document}
 \begin{frame}[plain]\titlepage\end{frame}
 
-\begin{frame}{지난주 복습: 단어를 벡터로}
+\begin{frame}{복습: 단어를 벡터로 (1--4절)}
 \begin{itemize}
 \item 단어의 의미는 주변 단어 (맥락)로 정해진다 (분포 가설)
 \item 통계 기반: 동시발생 행렬을 세고, PPMI로 흔한 단어의 영향을 줄이고, SVD로 차원을 줄인다
@@ -21,7 +21,7 @@
 \end{keybox}
 \end{frame}
 
-\begin{frame}{이번 주의 질문}
+\begin{frame}{여기서 다룰 질문}
 \begin{keybox}[문장을 어떻게 다룰까]
 \begin{itemize}
 \item 문장은 길이가 제각각이고, \textbf{순서}가 뜻을 정한다:
@@ -31,13 +31,13 @@
 \end{itemize}
 \end{keybox}
 \vskip3mm
-이번 주의 흐름:
+흐름:
 \vskip1mm
 \centering
 언어모델 (다음 단어 맞히기) $\to$ RNN $\to$ LSTM $\to$ 문장 생성과 seq2seq
 \end{frame}
 
-\begin{frame}{2주차 학습목표}
+\begin{frame}{학습목표}
 \begin{enumerate}
 \item 언어모델: 앞의 단어들로 다음 단어의 확률을 계산하는 모델과 그 성능 (퍼플렉서티)
 \item RNN의 은닉 상태가 앞의 문맥을 요약하는 방법과 시간 방향의 역전파 (Truncated BPTT)
@@ -59,7 +59,7 @@
 % =================================================
 
 \begin{frame}{다음 단어의 확률}
-1주차의 CBOW는 앞뒤의 단어로 \textbf{가운데} 단어를 맞혔다.
+3절의 CBOW는 앞뒤의 단어로 \textbf{가운데} 단어를 맞혔다.
 이제 \textbf{앞의 단어들만} 보고 \textbf{다음} 단어를 맞힌다:
 \[
 P(w_t\mid w_1,w_2,\dots,w_{t-1})
@@ -144,7 +144,7 @@ $\vect h_t$를 \textbf{은닉 상태}라 한다. 한 단어를 읽을 때마다 
 다음 단어를 잘 맞히도록 학습하면서 $W_h$, $W_x$가 정한다 (MLP의 은닉층 출력과 같다)
 \item \textbf{크기는 고정}이다 (\texttt{rnnlm\_ptb.py}에서 $100$차원).
 $3$단어를 읽었든 $300$단어를 읽었든 $100$개의 숫자로 요약해야 하므로,
-무엇을 남기고 무엇을 버릴지가 중요하다 (7절과 3주차의 동기)
+무엇을 남기고 무엇을 버릴지가 중요하다 (7절과 9절의 동기)
 \item \w{Tom} 문제를 풀려면 \w{Tom}의 정보가 $18$번의 갱신을 거치는 동안
 $\vect h$ 안에 남아 있어야 한다
 \end{itemize}
@@ -203,7 +203,7 @@ MLP, CNN은 \textbf{정해진 크기}의 입력을 받는다.
 1990 & Elman: 은닉 상태를 다시 입력으로 넣는 RNN. 그 실험이 \textbf{다음 단어 맞히기}였다. Werbos: BPTT 정리 \\
 1991--97 & Hochreiter, Bengio 등: 긴 열에서 기울기가 사라지는 문제. Hochreiter, Schmidhuber: LSTM (1997) \\
 2010년대 & RNN 언어모델 (Mikolov, 2010), LSTM으로 음성 인식 (2013)과 번역 (seq2seq, 2014) \\
-2017 이후 & 언어 처리는 Transformer (3주차)로. RNN은 시계열 예측, 실시간 처리에 쓰인다 \\
+2017 이후 & 언어 처리는 Transformer (10절)로. RNN은 시계열 예측, 실시간 처리에 쓰인다 \\
 \bottomrule
 \end{tabular}}
 \vskip1mm
@@ -345,7 +345,7 @@ Affine과 softmax를 붙여야 어휘 전체의 확률분포 (예: \w{say} $0.6$
 \end{columns}
 \vskip3mm
 한 번에 예측하는 것은 다음 단어 하나이지만, 뽑은 단어를 다시 넣는 반복으로 문장이 만들어진다.
-GPT도 같은 방식으로 한 토큰씩 생성한다 (3주차).
+GPT도 같은 방식으로 한 토큰씩 생성한다 (11절).
 \end{frame}
 
 \begin{frame}[fragile]{PyTorch: RNN 언어모델 (\texttt{rnnlm\_ptb.py}의 2번 셀)}
@@ -395,7 +395,7 @@ for k in range(0, train.size(1) - 1, T):
 \end{frame}
 
 \begin{frame}{Embedding 층과 word2vec}
-RNN 언어모델의 첫 층인 Embedding은 1주차의 $W_{\text{in}}$과 같은 ``단어 ID $\to$ 벡터'' 표이다.
+RNN 언어모델의 첫 층인 Embedding은 3절의 $W_{\text{in}}$과 같은 ``단어 ID $\to$ 벡터'' 표이다.
 이 표를 정하는 방법은 두 가지이다.
 \vskip1mm
 \begin{itemize}
@@ -424,7 +424,7 @@ $W_h$, $W_x$, $\vect b$는 모든 단어가 함께 쓰고, $\vect h_{t-1}$은 �
 \vskip1mm
 \begin{keybox}
 $W_{\text{in}}$의 행은 문맥과 상관없는 \textbf{고정된 표현},
-$\vect h_t$는 문맥 속에서 읽은 \textbf{문맥 표현}이다 (3주차).
+$\vect h_t$는 문맥 속에서 읽은 \textbf{문맥 표현}이다 (11절).
 \end{keybox}
 \figcap{Mikolov 등 (2013)은 RNN 언어모델의 이 행들로
 \w{king} $-$ \w{man} $+$ \w{woman} $\approx$ \w{queen} 같은 유추가 됨을 보였고, 이것이 word2vec으로 이어졌다}
@@ -653,25 +653,29 @@ $\vect h_{t-1}$도 다음 시각으로 가지만, 게이트와 새 내용을 계
 그래서 손대지 않은 기억은 그대로 남고, gradient도 그 길로 먼 과거까지 전달된다 (뒤에서)}
 \end{frame}
 
-\begin{frame}{이름의 뜻: 오래 가는 단기 기억}
-이름의 단기 기억, 장기 기억은 인지심리학에서 사람의 기억을 나누는 말을 신경망 연구가 빌려 쓴 것이다.
-\vskip2mm
-\centering
-\begin{tabular}{@{}lll@{}}
+\begin{frame}{이름의 뜻: 단기 기억은 $\vect h$인가 $\vect c$인가}
+이름의 단기 기억, 장기 기억은 인지심리학의 말을 빌려 쓴 것이다.
+LSTM 논문 (Hochreiter \& Schmidhuber, 1997)도 신경망 안의 기억을 두 종류로 나누는 데서 시작한다.
+\vskip1mm
+\begin{center}
+\small
+\begin{tabular}{@{}llll@{}}
 \toprule
-& 신경망에서 & 바뀌는 방식 \\
+& 담는 곳 & 바뀌는 때 & 남는 범위 \\
 \midrule
-단기 기억 & 활성값 & 입력에 따라 매번 바뀐다 \\
-장기 기억 & 가중치 & 학습으로 천천히 바뀌며 오래 남는다 \\
+장기 기억 & 가중치 $W$ & 학습할 때 (천천히) & 학습이 끝나면 고정, 모든 글에 쓰인다 \\
+단기 기억 & 활성값 ($\vect h$, $\vect c$) & 입력이 들어올 때마다 & 지금 읽는 글 안에서만 \\
 \bottomrule
 \end{tabular}
-\vskip2mm
-\raggedright
-이 용어로 보면 $\vect h$와 $\vect c$는 \textbf{둘 다 단기 기억}이다.
-RNN에서는 단기 기억이 몇 단어 만에 흐려졌는데, LSTM은 단기 기억 $\vect c$가 오래 가게 만들었다.
-\vskip2mm
+\end{center}
+\begin{itemize}
+\item 단기 기억은 기억의 \textbf{종류}이고, $\vect h$와 $\vect c$는 \textbf{둘 다} 단기 기억이다.
+\item \textbf{오래 가는 것은 $\vect c$}이다. $\vect h$는 매 시각 $\vect c$에서 새로 꺼내 만든다.
+\item RNN의 단기 기억은 $\vect h$ 하나뿐이었고, 몇 단어 만에 흐려졌다.
+\item $\vect c$도 가중치가 아니라 활성값이므로 장기 기억은 아니다.
+\end{itemize}
 \begin{keybox}
-long short-term memory: ``오래 가는 단기 기억''
+long short-term memory: ``오래 가는 단기 기억''. 오래 가게 만든 것은 $\vect c$이다.
 \end{keybox}
 \end{frame}
 
@@ -988,7 +992,7 @@ $\vect o$ & 기억 $\tanh(\vect c_t)$ & 무엇을 \textbf{읽어 낼지} \\
 \begin{itemize}
 \item ``성분 1은 주어 \w{Tom}''이라 한 것은 설명을 위해 단순화한 것이다.
 실제로는 하나의 정보가 여러 성분에 나뉘어 담기고, 한 성분도 여러 정보에 조금씩 관여한다
-(분산 표현, 1주차의 단어 벡터와 같다)
+(분산 표현, 3절의 단어 벡터와 같다)
 \item 그래도 게이트가 잘 동작하는 것은,
 $\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g$가 성분끼리 섞지 않고
 \textbf{원소별로만} 계산되기 때문이다
@@ -996,7 +1000,7 @@ $\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g$가 성분끼리 섞지
 학습은 그 $W$를 통해 ``게이트로 따로 다루기 좋은 좌표''에 정보를 배치하는 쪽으로 진행된다
 \end{itemize}
 \vskip2mm
-\begin{thinkbox}[어텐션으로 이어진다 (3주차)]
+\begin{thinkbox}[어텐션으로 이어진다 (9절)]
 어텐션도 데이터로 계산한 $0$--$1$ 사이의 가중치를 곱해 무엇을 볼지 고른다.
 LSTM의 게이트는 \textbf{특징 (성분)}마다, 어텐션은 \textbf{단어 위치}마다 가중치를 준다.
 \end{thinkbox}
@@ -1433,11 +1437,11 @@ $\vect h$를 이어 붙이므로 Decoder의 LSTM과 Linear의 입력이 $H$만�
 \vskip3mm
 \begin{keybox}
 Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분을 직접 찾아 보게} 하면 어떨까?
-그것이 3주차의 \textbf{어텐션}이다.
+그것이 9절의 \textbf{어텐션}이다.
 \end{keybox}
 \end{frame}
 
-\begin{frame}{2주차 정리}
+\begin{frame}{5--8절 정리}
 \begin{mlbox}
 \small
 \begin{itemize}
@@ -1454,7 +1458,7 @@ Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분�
 \end{mlbox}
 \end{frame}
 
-\begin{frame}{다음 주: 필요한 곳을 찾아 보기}
+\begin{frame}{다음: 필요한 곳을 찾아 보기}
 \begin{itemize}
 \item 긴 문장의 정보를 작은 벡터 하나에 다 담기는 어렵다.
 사람이 번역할 때도 원문 전체를 외운 뒤 번역하지 않는다
@@ -1464,7 +1468,7 @@ Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분�
 Decoder는 출력할 단어마다 입력의 어느 단어를 볼지 가중치로 고른다
 \end{itemize}
 \vskip3mm
-\begin{keybox}[3주차]
+\begin{keybox}[9--11절]
 어텐션 $\to$ 어텐션만으로 만든 Transformer $\to$ Transformer로 만든 언어모델 GPT
 \end{keybox}
 \end{frame}

@@ -64,10 +64,11 @@
 \newtcolorbox{remarkbox}[1][]{colback=softgray,colframe=black!45,boxrule=0.5pt,arc=2mm,title=#1,fonttitle=\bfseries}
 \newtcolorbox{mlbox}[1][]{colback=softgreen,colframe=green!45!black,boxrule=0.6pt,arc=2mm,title=#1,fonttitle=\bfseries}
 
-\newcommand{\week}[2]{%
+% banner at the start of each part of the unit (topic title only)
+\newcommand{\partbanner}[1]{%
   \par\vspace{0.8em}%
   \begin{tcolorbox}[colback=deepblue,colframe=deepblue,arc=1.5mm,boxrule=0pt,left=4mm,top=2mm,bottom=2mm]
-  {\color{white}\large\bfseries #1주차\quad #2}
+  {\color{white}\large\bfseries #1}
   \end{tcolorbox}\par}
 
 % figure with a caption line underneath (the minipage keeps figure and caption on one page)
@@ -155,16 +156,16 @@
 이 단원은 이 두 질문을 차례로 푼다. 단어를 벡터로 바꾸는 방법에서 시작해, 문장을 읽고 쓰는 신경망 (RNN, seq2seq)을 거쳐, 지금의 언어모델 (GPT 등)의 핵심인 어텐션과 Transformer까지 간다.
 \end{keybox}
 
-\subsection*{3주의 흐름}
+\subsection*{단원의 흐름}
 
 \begin{center}
 \begin{tabular}{@{}lp{56mm}p{64mm}@{}}
 \toprule
-주 & 질문 & 내용 \\
+절 & 질문 & 내용 \\
 \midrule
-1주차 & 단어를 어떻게 벡터로 바꾸는가? & 동시발생 행렬, PPMI, SVD, word2vec (CBOW), Embedding, 네거티브 샘플링 \\
-2주차 & 문장을 어떻게 다루는가? & 언어모델, RNN, LSTM, 문장 생성, seq2seq \\
-3주차 & 긴 문장에서 필요한 정보를 어떻게 찾는가? & 어텐션, Transformer, GPT, 토큰 \\
+1--4절 & 단어를 어떻게 벡터로 바꾸는가? & 동시발생 행렬, PPMI, SVD, word2vec (CBOW), Embedding, 네거티브 샘플링 \\
+5--8절 & 문장을 어떻게 다루는가? & 언어모델, RNN, LSTM, 문장 생성, seq2seq \\
+9--11절 & 긴 문장에서 필요한 정보를 어떻게 찾는가? & 어텐션, Transformer, GPT, 토큰 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -196,7 +197,7 @@
 \end{center}
 
 % #################################################
-\week{1}{단어를 벡터로}
+\partbanner{단어를 벡터로}
 % #################################################
 
 % =================================================
@@ -471,7 +472,7 @@ epoch마다의 평균 loss는 첫 epoch $1.970$, $1000$ epoch $0.350$, 마지막
 \tfig{cbow_order}{맥락의 순서만 다른 두 학습 예는 같은 $\vect h$를 만든다}
 
 그래서 이 데이터에서 loss는 $(2\log2)/6=0.231$보다 작아질 수 없다. 학습된 모델의 loss $0.235$는 이 값에 거의 닿아 있다.
-\textbf{맥락의 순서를 보지 못한다}는 것이 bag-of-words의 뜻이고, CBOW의 한계이다. 순서를 다루는 모델은 2주차에 나온다.
+\textbf{맥락의 순서를 보지 못한다}는 것이 bag-of-words의 뜻이고, CBOW의 한계이다. 순서를 다루는 모델은 \ref{sec:rnn}절에서 다룬다.
 
 \textbf{단어 벡터.} 학습된 $W_{\text{in}}$의 각 행이 단어의 벡터이다 (\figref{cbow_simple_W_in}).
 
@@ -707,16 +708,16 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 정답 없는 글로 학습 & 사전학습 (다음 토큰 맞히기) \\
 네거티브 샘플링 & 대조 학습 (임베딩 모델, CLIP) \\
 코사인 유사도로 찾기 & 검색, 추천, RAG \\
-단어마다 고정된 벡터 & 문맥에 따라 달라지는 벡터로 대체 (3주차) \\
+단어마다 고정된 벡터 & 문맥에 따라 달라지는 벡터로 대체 (\ref{sec:gpt}절) \\
 \bottomrule
 \end{tabular}
 \end{center}
 
 \textbf{남은 문제.} 단어 벡터는 단어 \textbf{하나}의 표현이다. 문장을 나타내려고 단어 벡터들을 평균하면, \ref{sec:cbowtrain}절에서 본 것처럼 단어의 순서가 사라진다.
 \w{dog bites man}과 \w{man bites dog}은 같은 단어들로 되어 있지만 뜻이 다르다.
-순서가 있는 단어의 열을 읽는 방법 (2주차의 RNN)과, 문맥을 보고 단어의 벡터를 바꾸는 방법 (3주차의 Transformer)이 이 문제를 푼다.
+순서가 있는 단어의 열을 읽는 방법 (\ref{sec:rnn}절의 RNN)과, 문맥을 보고 단어의 벡터를 바꾸는 방법 (\ref{sec:transformer}절의 Transformer)이 이 문제를 푼다.
 
-\begin{mlbox}[1주차 정리]
+\begin{mlbox}[1--4절 정리]
 \begin{itemize}[leftmargin=1.5em]
 \item 단어의 의미는 주변 단어 (맥락)로 정해진다 (분포 가설).
 \item 통계 기반: 동시발생 행렬을 세고, PPMI로 흔한 단어의 영향을 줄이고, SVD로 차원을 줄인다.
@@ -724,12 +725,12 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 \item CBOW는 맥락의 단어 벡터를 평균하므로 맥락 안의 순서를 보지 못한다 (bag-of-words).
 \item 큰 어휘에서는 원핫 곱 대신 Embedding 층 (행 꺼내기)을, softmax 대신 네거티브 샘플링 (정답 하나와 오답 몇 개의 이진 분류)을 쓴다.
 \item 지금의 언어모델도 Embedding 층으로 시작하고, 정답 없는 글로 사전학습한다. 고정된 단어 벡터 대신 문맥에 따라 달라지는 벡터를 쓰고, 벡터로 비슷한 것을 찾는 방법은 검색과 RAG에 쓰인다.
-\item 남은 질문: 단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까? (2주차)
+\item 남은 질문: 단어가 아니라 \textbf{문장}, 즉 순서가 있는 단어의 열은 어떻게 다룰까? (\ref{sec:lm}절부터)
 \end{itemize}
 \end{mlbox}
 
 % =================================================
-\section*{연습문제 (1주차)}
+\section*{연습문제 (1--4절)}
 % =================================================
 
 \begin{enumerate}[label=\arabic*.]
@@ -747,7 +748,7 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 
 \clearpage
 % #################################################
-\week{2}{문장을 다루는 신경망: RNN}
+\partbanner{문장을 다루는 신경망: RNN}
 % #################################################
 
 % =================================================
@@ -756,7 +757,7 @@ $W_{\text{out}}$의 점수 & 마지막 층에서 다음 토큰의 점수 \\
 
 \subsection{단어 열의 확률}
 
-1주차의 CBOW는 맥락 (앞뒤의 단어)으로 \textbf{가운데} 단어를 맞혔다. 이제 \textbf{앞의 단어들만} 보고 \textbf{다음} 단어를 맞히는 모델을 생각한다 (\figref{p_next}):
+\ref{sec:w2v}절의 CBOW는 맥락 (앞뒤의 단어)으로 \textbf{가운데} 단어를 맞혔다. 이제 \textbf{앞의 단어들만} 보고 \textbf{다음} 단어를 맞히는 모델을 생각한다 (\figref{p_next}):
 \begin{equation}
 P(w_t\mid w_1,w_2,\dots,w_{t-1}).
 \end{equation}
@@ -908,7 +909,7 @@ RNN으로 언어모델을 만들면 \figref{rnnlm}처럼 된다. 각 시각에 �
 \textbf{시각마다 예측한다.} 첫 시각에는 \w{you} 하나만 보고 다음 단어를 예측하고, 둘째 시각에는 \w{you say}를 요약한 $\vect h_2$로 예측한다.
 시각 $t$의 예측은 $1$번째부터 $t$번째 단어까지만 본다. 첫 단어 하나로 한 예측은 정보가 적어 틀리기 쉽지만, 이것도 loss에 들어간다.
 
-정답은 1주차와 같은 방식으로 만든다. 입력 단어열을 한 칸 민 것이 정답이다. loss는 모든 시각의 cross-entropy의 평균이다.
+정답은 CBOW 때처럼 (\ref{sec:w2v}절) 말뭉치에서 만든다. 입력 단어열을 한 칸 민 것이 정답이다. loss는 모든 시각의 cross-entropy의 평균이다.
 은닉 상태가 앞의 단어들을 기억하므로, \w{say} 다음에 \w{goodbye}와 \w{hello} 중 무엇이 올지를 그 앞의 단어들로 구별할 수 있다.
 
 \textbf{$\vect h_t$는 단어가 아니다.} $\vect h_t$는 RNN 계층의 출력이자 다음 시각으로 넘어가는 은닉 상태이지만, 예측한 단어는 아니다.
@@ -963,7 +964,7 @@ for k in range(0, train.size(1) - 1, T):
 \texttt{detach}가 Truncated BPTT의 ``역전파만 끊기''이고, \texttt{clip\_grad\_norm\_}은 \ref{sec:lstm}절에서 설명한다.
 
 \begin{remarkbox}[Embedding 층과 word2vec의 관계]
-RNN 언어모델의 첫 층인 Embedding은 1주차의 $W_{\text{in}}$과 같은 ``단어 ID $\to$ 벡터'' 표이다. 이 표를 정하는 방법은 두 가지이다.
+RNN 언어모델의 첫 층인 Embedding은 \ref{sec:w2v}절의 $W_{\text{in}}$과 같은 ``단어 ID $\to$ 벡터'' 표이다. 이 표를 정하는 방법은 두 가지이다.
 \begin{itemize}[leftmargin=1.2em]
 \item word2vec으로 미리 학습한 단어 벡터를 초기값으로 넣는다. 학습 데이터가 적은 과제에서, 큰 말뭉치에서 얻은 단어의 지식을 빌려 쓰는 방법이다.
 \item 무작위 값에서 시작해 RNN과 함께 학습한다. RNN 언어모델도 ``앞 단어로 다음 단어 맞히기''라는 예측을 학습하므로, word2vec과 같은 원리로 Embedding의 행이 단어의 분산 표현이 된다.
@@ -972,7 +973,7 @@ RNN 언어모델의 첫 층인 Embedding은 1주차의 $W_{\text{in}}$과 같은
 
 \medskip
 \textbf{앞의 문맥이 섞이는데도 왜 단어의 표현인가.}
-Embedding 표를 1주차처럼 $W_{\text{in}}$ ($V\times D$, $D$는 단어 벡터의 크기로 코드에서 $100$)이라 하자. 단어 $w$가 들어오면 $\vect x_t$는 $W_{\text{in}}$의 $w$번째 행이고,
+Embedding 표를 CBOW에서처럼 $W_{\text{in}}$ ($V\times D$, $D$는 단어 벡터의 크기로 코드에서 $100$)이라 하자. 단어 $w$가 들어오면 $\vect x_t$는 $W_{\text{in}}$의 $w$번째 행이고,
 $\vect h_t=\tanh\big(\vect h_{t-1}W_h+\vect x_tW_x+\vect b\big)$ (\eqnref{rnn})에서 ``어떤 단어인가''는 $\vect x_t$로만 들어온다. $W_h$, $W_x$, $\vect b$는 모든 단어가 함께 쓰고, $\vect h_{t-1}$은 문맥이다.
 \begin{itemize}[leftmargin=1.2em]
 \item $\vect h_{t-1}$은 $\vect x_t$를 바꾸지 않고 옆에 더해질 뿐이다. 문맥이 섞이는 것은 $\vect h_t$이고, $W_{\text{in}}$의 행은 문맥과 상관없이 같다.
@@ -1078,7 +1079,7 @@ LSTM의 핵심은 \textbf{게이트}이다. 게이트는 정보를 ``얼마나''
 이제 부품을 하나씩 더하며 LSTM을 만든다. 순서는 기억 셀 $\to$ output 게이트 $\to$ forget 게이트 $\to$ 새 기억 $\vect g$ $\to$ input 게이트이다.
 단계마다 ``그 부품이 없으면 무엇이 곤란한가''를 먼저 보고, 그것을 해결하는 부품을 더한다. 그림에서 빨간 점선이 그 단계에서 더한 부분이다.
 
-\subsection{기억 셀: 오래 담아 두는 곳}
+\subsection{기억 셀: 오래 담아 두는 곳}\label{sec:lstmcell}
 
 먼저 게이트 없이 기억 셀만 둔다 (\figref{lstm_s1}).
 \begin{itemize}[leftmargin=1.5em]
@@ -1100,8 +1101,25 @@ $\vect h_t$도 여전히 다음 시각으로 가지만 역할이 다르다. 기�
 그래서 손대지 않은 기억은 그대로 남고, gradient도 그 길로 먼 과거까지 전달된다 (\ref{sec:lstmgrad}절).
 
 \textbf{이름의 뜻.} 이름의 단기 기억, 장기 기억은 인지심리학에서 사람의 기억을 나누는 말을 신경망 연구가 빌려 쓴 것이다.
-신경망에서 \textbf{단기 기억}은 입력에 따라 매번 바뀌는 \textbf{활성값}이고, \textbf{장기 기억}은 학습으로 천천히 바뀌며 오래 남는 \textbf{가중치}이다.
-이 용어로 보면 $\vect h$와 $\vect c$는 둘 다 단기 기억이다. RNN에서는 단기 기억이 몇 단어 만에 흐려졌는데, LSTM은 단기 기억 $\vect c$가 오래 가게 만들었다. 그래서 long short-term memory, ``오래 가는 단기 기억''이다.
+LSTM을 제안한 논문~\cite{hochreiter1997}도 신경망 안의 기억을 다음 두 종류로 나누는 데서 시작한다.
+
+\begin{center}
+\begin{tabular}{@{}llll@{}}
+\toprule
+& 담는 곳 & 바뀌는 때 & 남는 범위 \\
+\midrule
+장기 기억 & 가중치 $W$ & 학습할 때 (천천히) & 학습이 끝나면 고정되고, 모든 글에 쓰인다 \\
+단기 기억 & 활성값 ($\vect h$, $\vect c$) & 입력이 들어올 때마다 & 지금 읽는 글 안에서만 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+``앞에 \w{Tom}이 나왔다''처럼 지금 읽는 글의 내용은 가중치가 아니라 활성값에 담기고, 새 글을 읽을 때는 보통 영벡터에서 다시 시작한다.
+그러니 단기 기억은 $\vect h$나 $\vect c$ 하나를 가리키는 말이 아니라 기억의 \textbf{종류}이고, $\vect h$와 $\vect c$는 둘 다 단기 기억이다.
+둘 가운데 \textbf{오래 가는 것은 $\vect c$}이다. $\vect c$는 손대지 않으면 거의 그대로 다음 시각으로 넘어가지만, $\vect h$는 매 시각 $\vect c$에서 새로 꺼내 만든다 ($\vect h_t=\tanh(\vect c_t)$, 다음 절에서 output 게이트를 곱한다).
+RNN에서는 단기 기억이 $\vect h$ 하나뿐이었고, 매 시각 $W_h$와 $\tanh$를 거치며 몇 단어 만에 흐려졌다.
+LSTM은 단기 기억 $\vect c$가 오래 가게 만들었다. 그래도 $\vect c$는 가중치가 아니라 활성값이므로 장기 기억은 아니다.
+그래서 long short-term memory, ``오래 가는 단기 기억''이다.
 
 빌린 것은 이름뿐이고, 구조는 사람의 기억을 흉내 내서 나온 것이 아니다.
 Hochreiter는 RNN의 기울기가 시간을 거슬러 가며 지수적으로 줄어드는 것을 분석했고~\cite{hochreiter1991}, 그 해결책으로 이전 값에 $1$을 곱해 그대로 넘기는 셀을 두었다~\cite{hochreiter1997}.
@@ -1232,6 +1250,7 @@ $\vect h_t$ & $0.019$ & $0.634$ & $-0.025$ & 출력 \\
 \item 성분 3: 모든 게이트가 $0.5$이다. 옛 기억의 절반과 새 내용의 절반이 섞이고, 그 절반을 내보낸다.
 \end{itemize}
 RNN이었다면 세 성분 모두 $\tanh(\cdots)$로 새로 계산되어, 성분 1처럼 값을 그대로 간직하는 일이 어렵다.
+성분 1이 \ref{sec:lstmcell}절에서 말한 ``오래 가는 단기 기억''의 모습이다. 기억은 $\vect c$에 남아 있고, 지금의 $\vect h$에는 드러나지 않는다.
 
 \textbf{예: \w{Tom} 문제.} 학습이 잘 되었다면 다음처럼 동작할 수 있다.
 \w{Tom}을 읽을 때 input 게이트가 열려, $\vect c$의 어떤 성분에 ``주어는 \w{Tom}''이라는 정보가 적힌다.
@@ -1257,7 +1276,7 @@ CNN에서 채널 (특징맵)마다 다른 가중치를 곱하는 것과 비슷�
 컴퓨터의 메모리를 지우고, 쓰고, 읽는 것과 같다. 다른 점은 $0$ 또는 $1$로 딱 자르지 않고 $0$과 $1$ 사이의 비율로 조금씩 한다는 것이다. 그래서 미분할 수 있고, 역전파로 학습할 수 있다.
 
 셋째, \textbf{성분 하나가 뜻 하나에 깔끔하게 대응하지는 않는다.}
-앞의 예에서 ``성분 1은 주어 \w{Tom}''이라 한 것은 설명을 위해 단순화한 것이다. 실제로는 하나의 정보가 여러 성분에 나뉘어 담기고, 한 성분도 여러 정보에 조금씩 관여한다 (분산 표현, 1주차의 단어 벡터와 같다).
+앞의 예에서 ``성분 1은 주어 \w{Tom}''이라 한 것은 설명을 위해 단순화한 것이다. 실제로는 하나의 정보가 여러 성분에 나뉘어 담기고, 한 성분도 여러 정보에 조금씩 관여한다 (분산 표현, \ref{sec:w2v}절의 단어 벡터와 같다).
 그래도 게이트가 잘 동작하는 것은, 기억 셀의 갱신 $\vect c_t=\vect f\odot\vect c_{t-1}+\vect i\odot\vect g$가 성분끼리 섞지 않고 원소별로만 계산되기 때문이다.
 성분이 섞이는 곳은 게이트와 $\vect g$를 계산할 때 곱하는 $W$뿐이다. 학습은 그 $W$를 통해 ``게이트로 따로 다루기 좋은 좌표''에 정보를 배치하는 쪽으로 진행된다.
 
@@ -1529,9 +1548,9 @@ class Seq2seq(nn.Module):
 Encoder는 입력 문장이 아무리 길어도 \textbf{고정 길이 벡터 $\vect h$ 하나}로 요약한다.
 짧은 덧셈 문제는 괜찮지만, 긴 문장을 번역할 때는 필요한 정보가 $\vect h$ 하나에 다 담기지 않는다.
 peeky는 $\vect h$를 여러 번 보게 했을 뿐, $\vect h$ 자체의 크기는 그대로이다.
-Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분을 직접 찾아 보게} 하면 어떨까? 그것이 3주차의 \textbf{어텐션}이다.
+Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분을 직접 찾아 보게} 하면 어떨까? 그것이 \ref{sec:attn}절의 \textbf{어텐션}이다.
 
-\begin{mlbox}[2주차 정리]
+\begin{mlbox}[5--8절 정리]
 \begin{itemize}[leftmargin=1.5em]
 \item 언어모델은 앞의 단어들로 다음 단어의 확률을 계산한다. 성능은 퍼플렉서티로 잰다.
 \item RNN은 은닉 상태 $\vect h_t$에 지금까지의 단어를 요약하며 한 단어씩 읽는다. 학습은 시간 방향으로 펼친 신경망의 역전파 (Truncated BPTT)이다.
@@ -1543,7 +1562,7 @@ Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분�
 \end{mlbox}
 
 % =================================================
-\section*{연습문제 (2주차)}
+\section*{연습문제 (5--8절)}
 % =================================================
 
 \begin{enumerate}[label=\arabic*.,resume]
@@ -1559,7 +1578,7 @@ Decoder가 단어를 만들 때마다 \textbf{입력 문장의 필요한 부분�
 
 \clearpage
 % #################################################
-\week{3}{필요한 곳을 찾아 보기: 어텐션과 Transformer}
+\partbanner{필요한 곳을 찾아 보기: 어텐션과 Transformer}
 % #################################################
 
 % =================================================
@@ -1640,7 +1659,7 @@ logits = self.out(torch.cat([c, h], dim=2))
 입력 형식이 다양하고 (\w{1994-09-27}에서 \w{09}가 \w{september}에서 와야 한다), 입력과 출력의 대응 관계가 분명해서 어텐션이 무엇을 보는지 확인하기 좋다.
 1970년 1월 1일부터 $20{,}001$일 가운데 $2{,}000$일을 테스트용으로 떼어 놓고, 나머지 날짜로 학습용 예 $45{,}000$개, 떼어 놓은 날짜로 테스트용 예 $5{,}000$개를 만들었다 (\texttt{attention\_date.py}).
 형식은 다섯 가지이고 대소문자도 무작위로 바꾼다. 테스트에 나오는 날짜는 학습 데이터에 어떤 형식으로도 나오지 않는다.
-글자 Embedding $16$차원, LSTM $256$차원, 입력 뒤집기, Adam, $10$ epoch. 비교 대상은 2주차의 엿보기 seq2seq이다. epoch마다의 정확도는 \figref{attention_date_accuracy}에 있다.
+글자 Embedding $16$차원, LSTM $256$차원, 입력 뒤집기, Adam, $10$ epoch. 비교 대상은 \ref{sec:gen}절의 엿보기 seq2seq이다. epoch마다의 정확도는 \figref{attention_date_accuracy}에 있다.
 
 \fig[0.5]{figures/attention_date_accuracy.png}{epoch마다 잰 날짜 변환의 정확도 (답 전체가 맞은 비율)}
 
@@ -1762,7 +1781,7 @@ $1024$ & $31.87$ & $0.965$ & $0.316$ \\
 \subsection{순서 정보와 여러 개의 머리}
 
 \textbf{위치 정보.} 가중합은 더하는 순서와 상관이 없다. \w{"cat the sat"}에서 계산해도 \w{sat}의 출력은 똑같이 $(0.7870,\ 0.1065)$이다 (\texttt{lm\_tiny.py}의 2번 셀).
-RNN은 순서대로 읽으니 순서를 알았지만, self-attention은 순서를 모른다. 1주차의 CBOW가 맥락의 순서를 보지 못한 것과 같은 이유이다.
+RNN은 순서대로 읽으니 순서를 알았지만, self-attention은 순서를 모른다. \ref{sec:w2v}절의 CBOW가 맥락의 순서를 보지 못한 것과 같은 이유이다.
 그래서 단어 벡터에 \textbf{위치를 나타내는 벡터}를 더한다: $\vect x_t\leftarrow\vect x_t+\vect p_t$. 위치 벡터 $\vect p_t$도 학습되는 가중치이다. 같은 단어도 위치가 다르면 다른 벡터가 되어 결과가 달라진다.
 예를 들어 $\vect p_1=(0.5,0)$, $\vect p_2=(0,0.5)$, $\vect p_3=(-0.5,0)$을 더하고 같은 계산을 하면,
 \w{sat}의 출력은 \w{"the cat sat"}에서 $(0.8176,\ 0.3878)$, \w{"cat the sat"}에서 $(1.3958,\ 0.0405)$로 서로 다르다.
@@ -1799,7 +1818,7 @@ Transformer의 Encoder와 Decoder는 같은 모양의 블록을 $N$번 쌓은 �
 \item \textbf{Feed Forward}: 은닉층이 하나인 신경망 (Linear $\to$ ReLU $\to$ Linear)이다. 모든 위치에 같은 가중치로 \textbf{따로} 적용된다. 어텐션이 다른 위치에서 모아 온 정보를 위치마다 가공한다.
 \item \textbf{add \& norm}: 각 부분의 출력을 입력에 \textbf{더하고} (residual 연결) 정규화한다. 정규화는 \textbf{LayerNorm}~\cite{ba2016}으로, 벡터 하나의 성분들을 평균 $0$, 분산 $1$로 맞춘다.
 예를 들어 $(1,2,3,6)$은 평균 $3$, 분산 $3.5$이므로 $(-1.069,\ -0.5345,\ 0,\ 1.6036)$이 된다 (\texttt{lm\_tiny.py}의 4번 셀).
-residual 연결은 CNN 단원의 ResNet, 2주차의 LSTM 기억 셀과 같은 원리로 gradient를 잘 전달하고, 정규화는 각 층의 입력 크기를 일정하게 유지한다. 그래서 층을 깊게 쌓아도 학습이 된다.
+residual 연결은 CNN 단원의 ResNet, \ref{sec:lstm}절의 LSTM 기억 셀과 같은 원리로 gradient를 잘 전달하고, 정규화는 각 층의 입력 크기를 일정하게 유지한다. 그래서 층을 깊게 쌓아도 학습이 된다.
 \end{itemize}
 
 RNN이 없으므로 문장의 모든 위치를 동시에 계산한다. 그래서 큰 GPU에서 훨씬 많은 데이터로 학습할 수 있다. 번역 품질도 RNN 기반의 GNMT보다 좋았다.
@@ -1811,7 +1830,7 @@ RNN이 없으므로 문장의 모든 위치를 동시에 계산한다. 그래서
 \subsection{Decoder 블록만 쌓는다}
 
 Transformer는 번역을 위해 만들어졌다. 원문을 읽는 Encoder와 번역문을 쓰는 Decoder가 있다.
-2주차의 언어모델은 앞의 단어들로 다음 단어를 맞힌다. 원문이 따로 없으므로 Encoder가 필요 없다.
+\ref{sec:lm}절의 언어모델은 앞의 단어들로 다음 단어를 맞힌다. 원문이 따로 없으므로 Encoder가 필요 없다.
 Decoder 블록에서 Encoder를 보는 어텐션을 빼면 causal mask를 쓴 self-attention과 Feed Forward가 남는다.
 이 블록만 쌓아 만든 언어모델이 \textbf{GPT} (generative pre-trained transformer)이다~\cite{radford2018} (\figref{gpt}).
 
@@ -1921,11 +1940,11 @@ class GPT(nn.Module):
 \end{center}
 
 블록 하나의 $121{,}300$개는 어텐션의 Linear 네 개 ($4\times10{,}100$), Feed Forward ($40{,}400+40{,}100$), LayerNorm 두 개 ($2\times200$)이다.
-가중치의 대부분은 단어 Embedding과 출력층에 있다. 2주차의 LSTM 언어모델 ($2{,}090{,}800$개)도 마찬가지로, LSTM 계층의 가중치는 $80{,}800$개뿐이다.
+가중치의 대부분은 단어 Embedding과 출력층에 있다. \ref{sec:lstm}절의 LSTM 언어모델 ($2{,}090{,}800$개)도 마찬가지로, LSTM 계층의 가중치는 $80{,}800$개뿐이다.
 
 \subsection{PTB로 학습하기: RNN, LSTM과 비교}
 
-2주차와 같은 PTB를 같은 설정 (벡터 $100$차원, Adam, 학습률 $10^{-3}$, gradient clipping, $10$ epoch)으로 학습한다 (\texttt{gpt\_ptb.py}). 블록 $2$개, head $4$개, $T=64$이다.
+\ref{sec:lstm}절과 같은 PTB를 같은 설정 (벡터 $100$차원, Adam, 학습률 $10^{-3}$, gradient clipping, $10$ epoch)으로 학습한다 (\texttt{gpt\_ptb.py}). 블록 $2$개, head $4$개, $T=64$이다.
 
 미니배치를 만드는 방법만 다르다. RNN은 은닉 상태를 이어 가야 해서 말뭉치를 순서대로 읽었다.
 GPT는 이어 갈 상태가 없으므로, 말뭉치의 아무 곳에서나 길이 $64$의 조각 $20$개를 뽑는다. 조각 하나의 $64$개 위치가 모두 학습 예이고, loss는 $20\times64=1{,}280$개 위치의 cross-entropy의 평균이다. 검증 퍼플렉서티의 변화는 \figref{gpt_ppl}에 있다.
@@ -1950,7 +1969,7 @@ GPT & $2{,}259{,}000$ & $151.3$ & $139.7$ \\
 \item 이 크기에서 GPT의 학습이 LSTM보다 빠르지는 않다. RTX 3050에서 세 모델 모두 $10$ epoch에 몇 분이 걸린다. 모든 위치를 동시에 계산하는 이점은 모델과 데이터가 클 때 나타난다.
 \end{itemize}
 
-\textbf{글 이어 쓰기.} 생성 방법은 2주차와 같다. 지금까지의 글 (최대 $T$단어)을 넣고, 마지막 위치의 점수에서 다음 단어를 뽑아 뒤에 붙이기를 되풀이한다 (\texttt{gpt\_ptb.py}의 5번 셀).
+\textbf{글 이어 쓰기.} 생성 방법은 \ref{sec:gen}절과 같다. 지금까지의 글 (최대 $T$단어)을 넣고, 마지막 위치의 점수에서 다음 단어를 뽑아 뒤에 붙이기를 되풀이한다 (\texttt{gpt\_ptb.py}의 5번 셀).
 RNN은 은닉 상태가 있어 새 단어 하나만 넣으면 되었지만, GPT는 상태가 없으므로 매번 글 전체를 다시 넣는다.
 
 \textbf{KV cache.} 글 전체를 다시 넣으면 앞 위치들의 계산을 매번 되풀이한다. 그런데 causal mask 때문에 앞 위치의 출력은 뒤에 붙는 단어의 영향을 받지 않는다.
@@ -1970,7 +1989,7 @@ LSTM의 글과 마찬가지로 $\tau$가 작을수록 무난한 구절이 이어
 
 \subsection{word2vec에서 Transformer로: 고정된 표현과 문맥 표현}
 
-1주차의 word2vec과 지금 배운 Transformer는 어떤 관계일까? 둘 다 단어를 밀집 벡터로 나타낸다. 차이는 \textbf{그 벡터가 문맥에 따라 달라지는가}이다.
+\ref{sec:w2v}절의 word2vec과 지금 배운 Transformer는 어떤 관계일까? 둘 다 단어를 밀집 벡터로 나타낸다. 차이는 \textbf{그 벡터가 문맥에 따라 달라지는가}이다.
 
 \textbf{word2vec: 단어마다 벡터 하나.} 학습이 끝나면 $W_{\text{in}}$의 행이 단어의 벡터로 고정된다.
 그래서 \w{the river bank} (강둑)의 \w{bank}와 \w{a bank account} (은행)의 \w{bank}가 같은 벡터이다. 여러 뜻이 한 벡터에 섞인다.
@@ -1994,12 +2013,12 @@ LSTM의 글과 마찬가지로 $\tau$가 작을수록 무난한 구절이 이어
 \end{tabular}
 \end{center}
 
-두 방법에는 공통점이 있다. 둘 다 \textbf{글에서 단어를 맞히는 예측을 학습하다 보니} 단어의 의미가 벡터에 담긴다 (1주차의 분포 가설).
+두 방법에는 공통점이 있다. 둘 다 \textbf{글에서 단어를 맞히는 예측을 학습하다 보니} 단어의 의미가 벡터에 담긴다 (\ref{sec:meaning}절의 분포 가설).
 GPT는 word2vec의 생각을 맥락은 훨씬 길게, 모델은 훨씬 크게 키운 것이라고 볼 수 있다.
 
 ``글을 벡터로 바꾸어 비슷한 것을 찾는다''는 word2vec의 쓰임도 그대로 남아 있다.
 검색, 추천, 그리고 언어모델이 관련 문서를 찾아 답하는 방법 (RAG)에서는 Transformer로 문장이나 문서 전체를 벡터 하나로 바꾸는 \textbf{임베딩 모델}을 쓴다.
-비슷한 문서를 찾을 때는 1주차와 똑같이 코사인 유사도를 계산한다.
+비슷한 문서를 찾을 때는 \ref{sec:count}절과 똑같이 코사인 유사도를 계산한다.
 
 \subsection{토큰: 단어보다 작은 조각}
 
@@ -2078,7 +2097,7 @@ GPT는 word2vec의 생각을 맥락은 훨씬 길게, 모델은 훨씬 크게 �
 Transformer의 Encoder와 Decoder는 따로 발전했다.
 \begin{itemize}[leftmargin=1.5em]
 \item \textbf{Encoder만 쓰는 모델} (BERT~\cite{devlin2019} 등): causal mask 없이 문장 전체를 양쪽에서 본다. 글을 이어 쓰지는 못하고, 문장을 읽어 분류하거나 검색하는 일에 쓴다.
-학습은 문장의 단어 몇 개를 가리고 그것을 맞히게 한다. 양쪽 맥락으로 가운데 단어를 맞히는 1주차의 CBOW와 닮았다.
+학습은 문장의 단어 몇 개를 가리고 그것을 맞히게 한다. 양쪽 맥락으로 가운데 단어를 맞히는 \ref{sec:w2v}절의 CBOW와 닮았다.
 \item \textbf{Decoder만 쓰는 모델} (GPT 등): 이 절에서 만든 모델이다. 앞의 토큰들로 다음 토큰을 맞히며 학습하고, 한 토큰씩 뽑아 글을 이어 쓴다.
 \end{itemize}
 
@@ -2126,7 +2145,7 @@ context length & 단어 $64$개 & 토큰 $2{,}048$개 \\
 \end{itemize}
 \textbf{남은 한계}도 있다. 다음 토큰을 그럴듯하게 맞히도록 학습했으므로, 사실이 아닌 내용을 자신 있게 쓰기도 한다 (hallucination). 검색으로 근거를 붙이거나 답을 검증하는 방법이 함께 쓰이는 이유이다.
 
-\subsection{3주의 정리}
+\subsection{단원 전체의 정리}
 
 각 주제는 앞의 방법의 문제를 하나씩 해결하며 나왔다.
 
@@ -2150,7 +2169,7 @@ RNN은 한 단어씩 순서대로 계산한다 & 어텐션만 쓴다: Transforme
 처음부터 끝까지 바뀌지 않은 것도 있다. \textbf{글의 일부를 가리고 맞히게 하면, 맞히는 데 필요한 것을 신경망이 스스로 배운다.}
 word2vec은 가운데 단어를, RNN과 GPT는 다음 단어를 맞혔다. 지금의 언어모델은 이 방법을 큰 Transformer와 많은 글에 적용한 것이다.
 
-\begin{mlbox}[3주차 정리]
+\begin{mlbox}[9--11절 정리]
 \begin{itemize}[leftmargin=1.5em]
 \item seq2seq는 입력을 고정 길이 벡터 하나로 요약하므로 긴 문장에 약하다. 어텐션은 Encoder의 모든 은닉 상태 $\vect{hs}$를 남겨 두고, Decoder가 매 시각 필요한 부분을 골라 본다.
 \item 고르기는 가중합으로 한다. 가중치는 Decoder의 은닉 상태와 $\vect{hs}$의 각 행의 내적에 softmax를 취해 만든다.
@@ -2166,7 +2185,7 @@ word2vec은 가운데 단어를, RNN과 GPT는 다음 단어를 맞혔다. 지�
 \end{mlbox}
 
 % =================================================
-\section*{연습문제 (3주차)}
+\section*{연습문제 (9--11절)}
 % =================================================
 
 \begin{enumerate}[label=\arabic*.,resume]

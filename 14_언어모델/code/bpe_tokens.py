@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 3 (3): tokens.  Byte pair encoding (BPE) builds a vocabulary of word pieces by counting only:
+# Section 11: tokens.  Byte pair encoding (BPE) builds a vocabulary of word pieces by counting only:
 #   start from single characters and repeatedly merge the most frequent pair of neighbouring tokens.
 #   Part A: a toy corpus of four words, merge by merge
 #   Part B: 1,000 merges learned from the Penn Treebank; how words are cut into tokens

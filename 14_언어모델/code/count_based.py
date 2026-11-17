@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 1 (1): word vectors by counting -- co-occurrence matrix, cosine similarity, PPMI, SVD.
+# Section 2: word vectors by counting -- co-occurrence matrix, cosine similarity, PPMI, SVD.
 #   Part A: the 8-word sentence "you say goodbye and i say hello ."
 #   Part B: the Penn Treebank corpus (about 930,000 words, 10,000 distinct words), from ../data/
 import os; os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")

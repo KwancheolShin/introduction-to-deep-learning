@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 3 (2): a small GPT (decoder-only Transformer) as a word-level language model on the Penn Treebank.
+# Section 11: a small GPT (decoder-only Transformer) as a word-level language model on the Penn Treebank.
 #   Same data and same task as rnnlm_ptb.py: predict the next word at every position.
 #   word embedding + position embedding -> 2 blocks [masked self-attention, add & norm, feed forward, add & norm]
 #   -> Linear(d -> V).  No RNN: all T positions of a chunk are computed at once, the causal mask hides the future.

@@ -1,5 +1,5 @@
 # %% 0. Setup
-# Week 1 (3): CBOW with negative sampling on the Penn Treebank (10,000 words).
+# Section 4: CBOW with negative sampling on the Penn Treebank (10,000 words).
 #   nn.Embedding instead of one-hot x matrix; "is this the right word?" (sigmoid) instead of a softmax over 10,000 words.
 import os; os.environ.setdefault("KMP_DUPLICATE_LIB_OK", "TRUE")
 import time
