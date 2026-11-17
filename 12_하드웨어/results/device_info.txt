@@ -1,0 +1,20 @@
+OS              : Windows 11
+CPU             : Intel64 Family 6 Model 170 Stepping 4, GenuineIntel
+logical CPUs    : 22
+Python          : 3.12.15
+PyTorch         : 2.5.1+cu121
+CUDA (PyTorch)  : 12.1
+cuDNN           : 90100
+
+GPU 0           : NVIDIA GeForce RTX 3050 4GB Laptop GPU
+  VRAM          : 4.0 GiB
+  SMs           : 20
+  compute cap.  : 8.6   (sm_86)
+
+matmul allow_tf32 : False
+cudnn  allow_tf32 : True
+bf16 supported    : True
+
+nvidia-smi:
+  driver_version, clocks.max.sm [MHz], clocks.max.memory [MHz], pcie.link.gen.max, pcie.link.width.max
+  545.92, 2100 MHz, 7001 MHz, 4, 16

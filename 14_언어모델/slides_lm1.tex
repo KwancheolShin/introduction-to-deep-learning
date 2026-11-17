@@ -205,7 +205,7 @@ ID & $0$ & $1$ & $2$ & $3$ & $4$ & $5$ & $6$ \\
 \item 그러면 \w{car}는 의미가 가까운 \w{drive}보다 \w{the}와 더 ``관련 있는'' 단어가 되어 버린다.
 \end{itemize}
 그래서 각 단어가 \textbf{원래 얼마나 자주 나오는가}에 비해 함께 나온 횟수가 얼마나 많은지를 본다.
-이것이 \textbf{점별 상호정보량} (PMI)이다:
+이것이 \textbf{점별 상호정보량} (pointwise mutual information, PMI)이다:
 \[
 \operatorname{PMI}(x,y)=\log_2\frac{P(x,y)}{P(x)P(y)}=\log_2\frac{C(x,y)\,N}{C(x)\,C(y)} .
 \]

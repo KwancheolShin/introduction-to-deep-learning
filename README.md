@@ -16,6 +16,8 @@ Folders with a `연습문제_정답` subfolder also have answer keys for the exe
 | [08_학습관련기술](08_학습관련기술) | 7 | Techniques for training | notes, code-reading slides, `code/` (scripts and Colab notebooks), answer keys |
 | [09_중간고사](09_중간고사) | 8 | Midterm exam | exam, solution, practice exam |
 | [10_CNN](10_CNN) | 9 | Convolutional neural networks | notes, slides, code-reading slides, `code/`, answer keys |
+| [11_딥러닝](11_딥러닝) | 10 | Deep learning: deeper CNNs, ImageNet networks (VGG, GoogLeNet, ResNet), speed-up, applications | notes, `code/`, run logs and trained parameters in `results/`, answer keys |
+| [12_하드웨어](12_하드웨어) | 11 | Hardware for deep learning (reading): CPU and memory, PCIe, inside the GPU, number formats, GPU generations | reading notes, `code/` (device info, GPU benchmark, charts), photos from Wikimedia Commons with credits |
 | [13_PINN](13_PINN) | 12–13 | Physics-informed neural networks | notes, slides, `code/` |
 | [14_언어모델](14_언어모델) | 14–16 | Natural language processing and language models: word vectors, RNN, seq2seq, attention, Transformer, GPT | notes, slides (three decks), `code/`, run logs in `data/` |
 

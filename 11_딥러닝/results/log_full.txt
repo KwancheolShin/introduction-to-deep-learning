@@ -1,0 +1,23 @@
+n55000: 123552 parameters, 55000 training images
+epoch  1 | val acc 0.9826 | 74 s
+epoch  2 | val acc 0.9886 | 41 s
+epoch  3 | val acc 0.9896 | 52 s
+epoch  4 | val acc 0.9910 | 52 s
+epoch  5 | val acc 0.9912 | 29 s
+epoch  6 | val acc 0.9908 | 30 s
+epoch  7 | val acc 0.9936 | 28 s
+epoch  8 | val acc 0.9916 | 26 s
+epoch  9 | val acc 0.9918 | 28 s
+epoch 10 | val acc 0.9914 | 29 s
+epoch 11 | val acc 0.9934 | 32 s
+epoch 12 | val acc 0.9930 | 40 s
+epoch 13 | val acc 0.9922 | 33 s
+epoch 14 | val acc 0.9922 | 34 s
+epoch 15 | val acc 0.9928 | 73 s
+epoch 16 | val acc 0.9922 | 76 s
+epoch 17 | val acc 0.9938 | 63 s
+epoch 18 | val acc 0.9934 | 87 s
+epoch 19 | val acc 0.9924 | 76 s
+epoch 20 | val acc 0.9930 | 62 s
+test acc 0.9949
+51 misclassified test images
